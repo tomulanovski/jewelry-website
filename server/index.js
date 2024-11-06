@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import passport from 'passport';
 import session from 'express-session';
 import authRoutes from './controllers/AuthController.js';
+import cartRoutes from './controllers/CartRoutes.js';
+import orderRoutes from './controllers/OrderController.js';
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -16,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "TOPSECRET", // need to have a real secret in env
+  secret: process.env.SESSION_SECRET, // need to have a real secret in env
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -27,7 +29,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// routes
 app.use('/auth', authRoutes);
+app.use('/cart', cartRoutes);
+app.use('/orders', orderRoutes);
 
 // Test Route
 app.get('/', (req, res) => {

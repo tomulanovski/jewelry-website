@@ -1,11 +1,11 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-local';
 
+// things to add- requirements for password strength, to see that all get handles good with front end
 const router = express.Router();
 
 // Register a new user

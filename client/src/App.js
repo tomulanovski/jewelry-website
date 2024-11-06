@@ -4,7 +4,8 @@ import Home from './pages/Home'; // Ensure this component exists
 import Login from './pages/Login'; // Ensure this component exists
 import Register from './pages/Register'; // Ensure this component exists
 import './App.css';
-
+import Cart from './pages/Cart';
+import Shop from './pages/Shop';
 function App() {
   return (
     <BrowserRouter>
@@ -12,6 +13,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/shop" element={<Shop />} />
       </Routes>
     </BrowserRouter>
   );
