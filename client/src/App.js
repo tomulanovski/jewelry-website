@@ -6,6 +6,8 @@ import Register from './pages/Register'; // Ensure this component exists
 import './App.css';
 import Cart from './pages/Cart';
 import Shop from './pages/Shop';
+import Checkout from './pages/Checkout';
+
 function App() {
   return (
     <BrowserRouter>
@@ -15,6 +17,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </BrowserRouter>
   );

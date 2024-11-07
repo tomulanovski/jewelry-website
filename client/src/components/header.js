@@ -1,14 +1,9 @@
 import React from "react";
-import HighlightIcon from "@mui/icons-material/Highlight";
+import NavBar from "./navbar";
 
 function Header() {
   return (
-    <header>
-      <h1>
-        <HighlightIcon />
-        Jewelery webiste
-      </h1>
-    </header>
+    <NavBar />
   );
 }
 
