@@ -5,7 +5,7 @@ import Login from './pages/Login'; // Ensure this component exists
 import Register from './pages/Register'; // Ensure this component exists
 import './App.css';
 import Cart from './pages/Cart';
-import Shop from './pages/Shop';
+import Shop from './pages/Shop/Shop';
 import Checkout from './pages/Checkout';
 
 function App() {
