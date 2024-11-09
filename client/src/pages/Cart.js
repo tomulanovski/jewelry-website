@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Header from '../components/header';
-import Footer from '../components/footer';
 import { useNavigate } from 'react-router-dom';
+import NavBar from '../components/navbar';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
@@ -43,7 +42,7 @@ function Cart() {
 
     return (
         <div>
-            <Header />
+            <NavBar />
             <h1>Your Cart</h1>
             <div>
                 {cartItems.length === 0 ? (
@@ -60,7 +59,6 @@ function Cart() {
                 )}
             </div>
             <button onClick={() => navigate('/checkout')}>Proceed to Checkout</button>
-            <Footer />
         </div>
     );
 }

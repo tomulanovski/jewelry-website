@@ -1,69 +1,60 @@
-import React, { useState, useEffect } from "react";
-import "../imageSlider.css";
+import React from 'react';
+import Carousel from 'react-material-ui-carousel';
+import { Paper, Box } from '@mui/material';
 
-function CustomCarousel({ children }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [timeID, setTimeID] = useState(null);
+// the images for the carousel
+const carouselItems = [
+  {
+    image: 'carousel_images/gold_bracelt.jpg',
+    title: 'Elegant Bracelet',
+    description: 'Exquisite craftsmanship for a timeless look.',
+  },
+  {
+    image: 'carousel_images/necklace.jpg',
+    title: 'Golden Necklace',
+    description: 'A piece that defines elegance and sophistication.',
+  },
+  {
+    image: 'carousel_images/ring.jpg',
+    title: 'Diamond Ring',
+    description: 'Shine bright with our exclusive diamond rings.',
+  },
+];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      slideNext();
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval); // Cleanup the interval on unmount
-  }, []);
-
-  const slideNext = () => {
-    setActiveIndex((prevIndex) => (prevIndex + 1) % children.length); // Loop to the first slide after the last
-  };
-
-  const slidePrev = () => {
-    setActiveIndex((prevIndex) => (prevIndex - 1 + children.length) % children.length); // Loop to the last slide from the first
-  };
-
+const ImageCarousel = () => {
   return (
-    <div
-      className="container__slider"
-      onMouseEnter={() => clearInterval(timeID)} // Stop autoplay when mouse enters
-      onMouseLeave={() => setTimeID(setInterval(slideNext, 5000))} // Start autoplay again when mouse leaves
-    >
-      {/* Render the slides */}
-      {children.map((item, index) => (
-        <div
-          key={index}
-          className={`slider__item slider__item-active-${activeIndex + 1}`}
-          style={{
-            opacity: activeIndex === index ? 1 : 0, // Only show the active slide
-          }}
-        >
-          {item}
-        </div>
-      ))}
-
-      {/* Navigation indicators */}
-      <div className="container__slider__links">
-        {children.map((_, index) => (
-          <button
-            key={index}
-            className={
-              activeIndex === index
-                ? "container__slider__links-small container__slider__links-small-active"
-                : "container__slider__links-small"
-            }
-            onClick={() => setActiveIndex(index)} // Jump to specific slide
-          />
+    <Box sx={{ width: '70%', margin: 'auto', mt: 5 }}>
+      <Carousel
+        animation="fade"
+        duration={800}
+        indicators
+        navButtonsAlwaysVisible
+        autoPlay
+        interval={4000}
+        swipe
+      >
+        {carouselItems.map((item, index) => (
+          <CarouselItem key={index} item={item} />
         ))}
-      </div>
-
-      {/* Navigation buttons */}
-      <button className="slider__btn-next" onClick={slideNext}>
-        {">"}
-      </button>
-      <button className="slider__btn-prev" onClick={slidePrev}>
-        {"<"}
-      </button>
-    </div>
+      </Carousel>
+    </Box>
   );
-}
+};
 
-export default CustomCarousel;
+const CarouselItem = ({ item }) => (
+  <Paper elevation={3} sx={{ position: 'relative', borderRadius: 4 }}>
+    <Box
+      component="img"
+      src={item.image}
+      alt={item.title}
+      sx={{
+        width: '100%',
+        height: { xs: '200px', sm: '400px', md: '500px' },
+        objectFit: 'cover',
+        borderRadius: 4,
+      }}
+    />
+  </Paper>
+);
+
+export default ImageCarousel;

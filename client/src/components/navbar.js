@@ -1,41 +1,45 @@
+// NavBar.js
 import React from 'react';
-import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap';
-import { Link } from 'react-router-dom'; // For React Router navigation
-import { FaUserCircle } from 'react-icons/fa'; // Import the user icon from react-icons
+import { AppBar, Toolbar, Typography, IconButton, Box, Button } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { Link } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles'; // Import the hook to use the theme
 
-function NavBar() {
+const NavBar = () => {
+  const theme = useTheme(); // Get the theme object
+
   return (
-    <Navbar bg="dark" variant="dark" expand="lg">  {/* Dark background with light text */}
-      <Container>
-        {/* Logo or Home Button */}
-        <Navbar.Brand as={Link} to="/">
-          <img
-            src="/path/to/logo.png" // Replace with your logo image or person icon
-            alt="Logo"
-            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-          />
-        </Navbar.Brand>
-        
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto"> {/* Align the nav items to the right */}
-            {/* Navigation Links */}
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/shop">Shop</Nav.Link>
-            <Nav.Link as={Link} to="/about">About</Nav.Link>
-            
-            {/* User Profile Dropdown with Icon */}
-            <NavDropdown title={<FaUserCircle size={24} />} id="basic-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/settings">Settings</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#">Logout</NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+    <AppBar position="static" sx={{ backgroundColor: theme.palette.background.default }}>
+      <Toolbar>
+        {/* Logo/Brand */}
+        <Typography variant="h6" sx={{ flexGrow: 1, textDecoration: 'none', color: theme.palette.text.primary }}>
+          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>My Jewelry Store</Link>
+        </Typography>
+
+           {/* Navigation Links */}
+           <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button color="inherit" sx={{ color: theme.palette.text.primary }} component={Link} to="/">
+            Home
+          </Button>
+          <Button color="inherit" sx={{ color: theme.palette.text.primary }} component={Link} to="/shop">
+            Shop
+          </Button>
+          <Button color="inherit" sx={{ color: theme.palette.text.primary }} component={Link} to="/about">
+            About
+          </Button>
+        </Box>
+
+        {/* Cart and Account Icons */}
+        <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
+          <ShoppingCartIcon />
+        </IconButton>
+        <IconButton component={Link} to="/account" sx={{ color: theme.palette.text.primary }}>
+          <AccountCircleIcon />
+        </IconButton>
+      </Toolbar>
+    </AppBar>
   );
-}
+};
 
 export default NavBar;

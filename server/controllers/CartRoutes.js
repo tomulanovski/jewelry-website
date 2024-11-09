@@ -3,117 +3,101 @@ import db from '../db.js';
 
 const router = express.Router();
 
-// Helper function to initialize the session cart for guest users
-const initializeSessionCart = (req) => {
+// Middleware to ensure session cart is initialized for guest users
+const ensureSessionCart = (req, res, next) => {
     req.session.cart = req.session.cart || [];
+    next();
 };
 
-// Add item to cart
-router.post('/add', async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+router.use(ensureSessionCart);
 
-    if (!productId || !quantity) {
-        return res.status(400).json({ error: 'Product ID and quantity are required' });
+// Add item to cart
+router.post('/add', async (req, res, next) => {
+    const { email, productId, quantity } = req.body;
+
+    if (!email || !productId || !quantity) {
+        return res.status(400).json({ error: 'Email, Product ID, and quantity are required' });
     }
 
     try {
-        if (userId) {
-            // Registered user: Save to database with upsert logic
-            await db.query(
-                `INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3)
-                 ON CONFLICT (user_id, product_id) DO UPDATE SET quantity = cart.quantity + $3`,
-                [userId, productId, quantity]
-            );
-        } else {
-            // Guest user: Save to session
-            initializeSessionCart(req); // Initialize session cart if it doesn't exist
-            const itemIndex = req.session.cart.findIndex(item => item.productId === productId);
-
-            if (itemIndex > -1) {
-                req.session.cart[itemIndex].quantity += quantity;
-            } else {
-                req.session.cart.push({ productId, quantity });
-            }
-        }
+        // Registered user: Save to database
+        await db.query(
+            `INSERT INTO cart (email, product_id, quantity) VALUES ($1, $2, $3)
+             ON CONFLICT (email, product_id) DO UPDATE SET quantity = cart.quantity + $3`,
+            [email, productId, quantity]
+        );
         res.status(200).json({ message: 'Item added to cart' });
     } catch (error) {
-        console.error('Error adding item to cart:', error);
-        res.status(500).json({ error: 'Error adding item to cart' });
+        next(error);
     }
 });
 
 // Get cart items
-router.get('/', async (req, res) => {
-    const { userId } = req.query;
+router.get('/', async (req, res, next) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
 
     try {
-        if (userId) {
-            // Registered user: Retrieve from database
-            const result = await db.query('SELECT * FROM cart WHERE user_id = $1', [userId]);
-            res.json(result.rows);
-        } else {
-            // Guest user: Retrieve from session
-            initializeSessionCart(req);
-            res.json(req.session.cart);
-        }
+        // Registered user: Retrieve items from database
+        const result = await db.query(`
+            SELECT c.product_id, c.quantity, p.name, p.price, p.image_url 
+            FROM cart c
+            JOIN products p ON c.product_id = p.id
+            WHERE c.email = $1
+        `, [email]);
+        res.json(result.rows);
     } catch (error) {
-        console.error('Error fetching cart items:', error);
-        res.status(500).json({ error: 'Error fetching cart items' });
+        next(error);
     }
 });
 
 // Update item quantity in cart
-router.put('/update', async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+router.put('/update', async (req, res, next) => {
+    const { email, productId, quantity } = req.body;
 
-    if (!productId || !quantity) {
-        return res.status(400).json({ error: 'Product ID and quantity are required' });
+    if (!email || !productId || quantity <= 0) {
+        return res.status(400).json({ error: 'Email, Product ID, and valid quantity are required' });
     }
 
     try {
-        if (userId) {
-            await db.query(
-                'UPDATE cart SET quantity = $3 WHERE user_id = $1 AND product_id = $2',
-                [userId, productId, quantity]
-            );
-        } else {
-            initializeSessionCart(req);
-            const itemIndex = req.session.cart.findIndex(item => item.productId === productId);
-
-            if (itemIndex > -1) {
-                req.session.cart[itemIndex].quantity = quantity;
-            }
-        }
+        // Registered user: Update item quantity in database
+        await db.query(
+            'UPDATE cart SET quantity = $3 WHERE email = $1 AND product_id = $2',
+            [email, productId, quantity]
+        );
         res.json({ message: 'Cart updated' });
     } catch (error) {
-        console.error('Error updating cart:', error);
-        res.status(500).json({ error: 'Error updating cart' });
+        next(error);
     }
 });
 
 // Remove item from cart
-router.delete('/remove', async (req, res) => {
-    const { userId, productId } = req.body;
+router.delete('/remove', async (req, res, next) => {
+    const { email, productId } = req.body;
 
-    if (!productId) {
-        return res.status(400).json({ error: 'Product ID is required' });
+    if (!email || !productId) {
+        return res.status(400).json({ error: 'Email and Product ID are required' });
     }
 
     try {
-        if (userId) {
-            await db.query(
-                'DELETE FROM cart WHERE user_id = $1 AND product_id = $2',
-                [userId, productId]
-            );
-        } else {
-            initializeSessionCart(req);
-            req.session.cart = req.session.cart.filter(item => item.productId !== productId);
-        }
+        // Registered user: Remove item from database
+        await db.query(
+            'DELETE FROM cart WHERE email = $1 AND product_id = $2',
+            [email, productId]
+        );
         res.json({ message: 'Item removed from cart' });
     } catch (error) {
-        console.error('Error removing item from cart:', error);
-        res.status(500).json({ error: 'Error removing item from cart' });
+        next(error);
     }
+});
+
+// Error handling middleware
+router.use((error, req, res, next) => {
+    console.error(error);
+    res.status(500).json({ error: 'An internal server error occurred' });
 });
 
 export default router;
