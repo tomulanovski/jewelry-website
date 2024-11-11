@@ -40,7 +40,7 @@ function Shop({ addItemToCart }) {
               <CardMedia
                 component="img"
                 height="200"
-                image={product.image1 || '/placeholder.jpg'}
+                image={product.image1}
                 alt={product.title}
               />
               <CardContent>
