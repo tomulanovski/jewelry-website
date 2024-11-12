@@ -8,6 +8,7 @@ import authRoutes from './controllers/AuthController.js';
 import cartRoutes from './controllers/CartRoutes.js';
 import orderRoutes from './controllers/OrderController.js';
 import shopRoutes from './controllers/ShopController.js';
+import productRoutes from './controllers/ProductController.js'
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -35,6 +36,7 @@ app.use('/auth', authRoutes);
 app.use('/cart', cartRoutes);
 app.use('/orders', orderRoutes);
 app.use('/shop', shopRoutes);
+app.use('/product',productRoutes);
 
 // Test Route
 app.get('/', (req, res) => {

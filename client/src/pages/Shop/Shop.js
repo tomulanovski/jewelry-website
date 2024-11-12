@@ -103,43 +103,38 @@ function Shop({ addItemToCart }) {
 <Grid container spacing={4} sx={{ padding: '20px' }}>
   {filteredProducts.map((product) => (
     <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-      <Card 
-        sx={{ 
-          height: '100%', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'space-between',
-          transition: 'transform 0.3s, box-shadow 0.3s',
-          '&:hover': {
-            transform: 'translateY(-5px)',
-            boxShadow: 6,
-          },
-        }}
-      >
-        <CardMedia
-          component="img"
-          height="250"
-          image={product.image1}
-          alt={product.title}
-          sx={{ objectFit: 'cover' }}
-        />
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography gutterBottom variant="h6" component="div" align="center" sx={{ fontWeight: 'bold' }}>
-            {product.title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center">
-            ${product.price}
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ marginTop: 2 }}
-            onClick={() => addItemToCart(product.id, 1)}
-          >
-            Add to Cart
-          </Button>
-        </CardContent>
-      </Card>
+<Card 
+  sx={{ 
+    height: '100%', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    justifyContent: 'space-between',
+    cursor: 'pointer',
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: 6,
+    },
+  }}
+  onClick={() => navigate(`/product/${product.id}`, { state: { product } })} // Pass product data as state
+>
+  <CardMedia
+    component="img"
+    height="250"
+    image={product.image1}
+    alt={product.title}
+    sx={{ objectFit: 'cover' }}
+  />
+  <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <Typography gutterBottom variant="h6" component="div" align="center" sx={{ fontWeight: 'bold' }}>
+      {product.title}
+    </Typography>
+    <Typography variant="body2" color="text.secondary" align="center">
+      ${product.price}
+    </Typography>
+  </CardContent>
+</Card>
+
     </Grid>
   ))}
 </Grid>
