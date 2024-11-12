@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Grid, Card, CardMedia, CardContent, Button } from '@mui/material';
+import { Box, Typography, Card, CardMedia, CardContent, Button } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '../../components/navbar';
+import { useTheme } from '@mui/material/styles';
 
 function Shop({ addItemToCart }) {
+  const theme = useTheme();
   const [products, setProducts] = useState([]);
+  const { category } = useParams();
+  const navigate = useNavigate();
 
+  // Map category names to product type values
+  const categoryMap = {
+    rings: 0,
+    necklaces: 1,
+    earrings: 2,
+    bracelets: 3,
+  };
+
+  // Fetch products on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -18,6 +33,11 @@ function Shop({ addItemToCart }) {
     fetchProducts();
   }, []);
 
+  // Filter products based on the type if category exists
+  const filteredProducts = category 
+  ? products.filter(product => product.type === categoryMap[category])
+    : products;
+
   return (
     <Box>
       <NavBar />
@@ -29,38 +49,101 @@ function Shop({ addItemToCart }) {
           color: 'rgb(var(--color_21))',
           textShadow: '2px 2px 5px rgba(0, 0, 0, 0.5)',
           letterSpacing: '2px',
+          marginBottom: '20px',
         }}
       >
-        SHOP
+        {category ? category.toUpperCase() : 'SHOP'}
       </Typography>
-      <Grid container spacing={4}>
-        {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.image1}
-                alt={product.title}
-              />
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                  {product.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  ${product.price}
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => addItemToCart(product.id, 1)}
-                >
-                  Add to Cart
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+
+<Box display="flex" justifyContent="center" gap={2} mb={4}>
+<Button
+    variant="outlined"
+    sx={{
+      color: 'text.primary',
+      borderColor: '#888',
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: '#555',
+      },
+      '&:focus': {
+        borderColor: '#333',
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      },
+      transition: 'all 0.3s ease-in-out',
+    }}
+    onClick={() => navigate('/shop')}
+  >
+    All Products
+  </Button>
+  {['rings', 'necklaces', 'earrings', 'bracelets'].map(cat => (
+    <Button
+      key={cat}
+      variant="outlined"
+      sx={{
+        color: 'text.primary',
+        borderColor: '#888', // Light gray border initially
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.05)', // Slight background on hover
+          borderColor: '#555', // Darker border on hover
+        },
+        '&:focus': {
+          borderColor: '#333', // Even darker on focus
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        },
+        transition: 'all 0.3s ease-in-out', // Smooth transition
+      }}
+      onClick={() => navigate(`/shop/${cat}`)}
+    >
+      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+    </Button>
+  ))}
+</Box>
+
+      {/* Product Grid */}
+<Grid container spacing={4} sx={{ padding: '20px' }}>
+  {filteredProducts.map((product) => (
+    <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+      <Card 
+        sx={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'space-between',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+            boxShadow: 6,
+          },
+        }}
+      >
+        <CardMedia
+          component="img"
+          height="250"
+          image={product.image1}
+          alt={product.title}
+          sx={{ objectFit: 'cover' }}
+        />
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography gutterBottom variant="h6" component="div" align="center" sx={{ fontWeight: 'bold' }}>
+            {product.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center">
+            ${product.price}
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ marginTop: 2 }}
+            onClick={() => addItemToCart(product.id, 1)}
+          >
+            Add to Cart
+          </Button>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
+
     </Box>
   );
 }
