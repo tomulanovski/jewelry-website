@@ -2,40 +2,50 @@ import React from 'react';
 import Carousel from 'react-material-ui-carousel';
 import { Paper, Box } from '@mui/material';
 
-
-function ImageCarousel (props) {
+function ImageCarousel({ items, width = '100%' }) {
   return (
-    <Box sx={{ width: '70%', margin: 'auto', mt: 5 }}>
+    <Box sx={{ width: width, margin: 'auto' }}>
       <Carousel
         animation="fade"
         duration={800}
         indicators
-        navButtonsAlwaysVisible
         autoPlay
         interval={4000}
         swipe
       >
-        {props.items.map((item, index) => (
+        {items.map((item, index) => (
           <CarouselItem key={index} item={item} />
         ))}
       </Carousel>
     </Box>
   );
-};
+}
 
 const CarouselItem = ({ item }) => (
-  <Paper elevation={3} sx={{ position: 'relative', borderRadius: 4 }}>
+  <Paper elevation={3} sx={{ position: 'relative', borderRadius: 4, overflow: 'hidden' }}>
     <Box
-      component="img"
-      src={item.image}
-      alt={item.title}
+      component="div"
       sx={{
         width: '100%',
-        height: { xs: '200px', sm: '400px', md: '500px' },
-        objectFit: 'cover',
-        borderRadius: 4,
+        height: '100%',
+        position: 'relative',
+        aspectRatio: '16/9',
       }}
-    />
+    >
+      <Box
+        component="img"
+        src={item.image}
+        alt={item.title}
+        sx={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      />
+    </Box>
   </Paper>
 );
 

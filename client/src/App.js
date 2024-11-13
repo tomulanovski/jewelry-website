@@ -8,10 +8,12 @@ import Cart from './pages/Cart';
 import Shop from './pages/Shop/Shop';
 import Checkout from './pages/Checkout';
 import Product from './pages/ProductPage';
+import { CartProvider } from './contexts/CartContext'; // Import CartProvider
 
 function App() {
   return (
     <BrowserRouter>
+    <CartProvider>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -22,6 +24,7 @@ function App() {
         <Route path="/product/:id" element={<Product />} />
         <Route path="/checkout" element={<Checkout />} />
       </Routes>
+      </CartProvider>
     </BrowserRouter>
   );
 }

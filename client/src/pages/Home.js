@@ -9,49 +9,48 @@ const carouselItems = [
   {
     image: 'carousel_images/gold_bracelt.jpg',
     title: 'Elegant Bracelet',
-    description: 'Exquisite craftsmanship for a timeless look.',
   },
   {
     image: 'carousel_images/necklace.jpg',
     title: 'Golden Necklace',
-    description: 'A piece that defines elegance and sophistication.',
   },
   {
     image: 'carousel_images/ring.jpg',
     title: 'Diamond Ring',
-    description: 'Shine bright with our exclusive diamond rings.',
   },
 ];
 
 function Home() {
-    const theme = useTheme(); // Get the theme object
+  const theme = useTheme();
+
   return (
     <Box>
       <NavBar />
       <Box>
-        <ImageCarousel items = {carouselItems} />
+        {/* Set a smaller width for the carousel on the home page */}
+        <ImageCarousel items={carouselItems} width="60%" />
         <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-          marginTop: 3,
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
           sx={{
-            backgroundColor: theme.palette.background.default,
-            color: theme.palette.text.primary,
-            border: 1
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            marginTop: 3,
           }}
-          href="/shop"
         >
-          Shop
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            sx={{
+              backgroundColor: theme.palette.background.default,
+              color: theme.palette.text.primary,
+              border: 1,
+            }}
+            href="/shop"
+          >
+            Shop
+          </Button>
         </Box>
       </Box>
     </Box>
