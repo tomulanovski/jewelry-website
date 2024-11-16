@@ -5,8 +5,7 @@ import Grid from '@mui/material/Grid';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '../../components/navbar';
 import { useTheme } from '@mui/material/styles';
-import CartContext from '../../contexts/CartContext'; // Use the default import
-
+import { useCart } from '../../contexts/CartContext';
 function Shop() {
   const theme = useTheme();
   const [products, setProducts] = useState([]);
@@ -14,7 +13,7 @@ function Shop() {
   const navigate = useNavigate();
 
   // Use the CartContext
-  const { addItemToCart } = useContext(CartContext);
+  const { addItem } = useCart();
 
   // Map category names to product type values
   const categoryMap = {
@@ -44,7 +43,7 @@ function Shop() {
 
   // Function to handle adding item to cart
   const handleAddToCart = (product) => {
-    addItemToCart(product);  // Call the function from CartContext
+    addItem(product);  // Call the function from CartContext
   };
 
   return (

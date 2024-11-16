@@ -3,11 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';
 import NavBar from '../components/navbar';
 import ImageCarousel from '../components/imageSlider';
+import { useCart } from '../contexts/CartContext';
 
-function ProductPage({ addItemToCart }) {
+function ProductPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const product = location.state?.product;
+  
+  // Get cart functions from context
+  const { addItem, getItem , updateQuantity } = useCart();
 
   if (!product) {
     return (
@@ -28,11 +32,20 @@ function ProductPage({ addItemToCart }) {
     }
   }
 
+  // Get current quantity in cart (if any)
+  const cartItem = getItem(product.id);
+  
+  // Handle add to cart
+  const handleAddToCart = () => {
+    addItem(product, 1);
+    // Optional: Show some feedback
+    // could use MUI's Snackbar for this
+  };
+
   return (
     <Box sx={{ padding: '20px' }}>
       <NavBar />
 
-      {/* Flexbox Layout for Product Page */}
       <Box
         sx={{
           display: 'flex',
@@ -77,14 +90,37 @@ function ProductPage({ addItemToCart }) {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Material: {product.material}
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
-            onClick={() => addItemToCart(product.id, 1)}
-          >
-            Add to Cart
-          </Button>
+          
+          {/* Cart Section */}
+          <Box sx={{ mt: 2 }}>
+            {cartItem ? (
+              // Show quantity controls if item is in cart
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
+                >
+                  -
+                </Button>
+                <Typography>{cartItem.quantity}</Typography>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
+                >
+                  +
+                </Button>
+              </Box>
+            ) : (
+              // Show add to cart if item is not in cart
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </Button>
+            )}
+          </Box>
         </Box>
       </Box>
     </Box>
