@@ -1,15 +1,15 @@
-// NavBar.js
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem, Badge } from '@mui/material'; // Add Badge import
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
+import { useCart } from '../contexts/CartContext'; 
 
 const NavBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  
+  const { getTotalItems } = useCart(); 
   // State for dropdown menu
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -110,7 +110,17 @@ const NavBar = () => {
 
         {/* Cart and Account Icons */}
         <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
-          <ShoppingCartIcon />
+          <Badge 
+            badgeContent={getTotalItems()} 
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: theme.palette.text.primary, // Customize badge color
+                color: 'black'
+              }
+            }}
+          >
+            <ShoppingCartIcon />
+          </Badge>
         </IconButton>
         <IconButton component={Link} to="/account" sx={{ color: theme.palette.text.primary }}>
           <AccountCircleIcon />

@@ -5,9 +5,13 @@ import { useCart } from '../contexts/CartContext';
 import { Box, Typography, Button } from '@mui/material';
 
 function Cart() {
-    // Get all the cart functions we need
     const { items, getTotalItems, getTotalPrice, updateQuantity, removeItem } = useCart();
     const navigate = useNavigate();
+
+    // Updated handler to use product ID in the path
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+    };
 
     return (
         <Box>
@@ -29,30 +33,60 @@ function Cart() {
                                     mb: 2,
                                     p: 2,
                                     border: '1px solid #eee',
-                                    borderRadius: 1
+                                    borderRadius: 1,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                    }
                                 }}
                             >
-                                {/* Optional: Show product image */}
-                                {item.image1 && (
-                                    <img 
-                                        src={item.image1} 
-                                        alt={item.title} 
-                                        style={{ 
-                                            width: '100px', 
-                                            height: '100px', 
-                                            objectFit: 'cover' 
-                                        }} 
-                                    />
-                                )}
+                                {/* Clickable section - now using item.id */}
+                                <Box 
+                                    onClick={() => handleProductClick(item.id)}
+                                    sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        flex: 1,
+                                        gap: 2
+                                    }}
+                                >
+                                    {item.image1 && (
+                                        <img 
+                                            src={item.image1} 
+                                            alt={item.title} 
+                                            style={{ 
+                                                width: '100px', 
+                                                height: '100px', 
+                                                objectFit: 'cover' 
+                                            }} 
+                                        />
+                                    )}
 
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="h6">{item.title}</Typography>
-                                    <Typography color="text.secondary">
-                                        ${item.price}
-                                    </Typography>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography 
+                                            variant="h6"
+                                            sx={{ 
+                                                '&:hover': { 
+                                                    textDecoration: 'underline'
+                                                }
+                                            }}
+                                        >
+                                            {item.title}
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            ${item.price}
+                                        </Typography>
+                                    </Box>
                                 </Box>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {/* Quantity controls */}
+                                <Box 
+                                    onClick={(e) => e.stopPropagation()} 
+                                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                                >
                                     <Button 
                                         variant="outlined"
                                         size="small"
@@ -70,13 +104,16 @@ function Cart() {
                                     </Button>
                                 </Box>
 
-                                <Button 
-                                    variant="outlined" 
-                                    color="error"
-                                    onClick={() => removeItem(item.id)}
-                                >
-                                    Remove
-                                </Button>
+                                {/* Remove button */}
+                                <Box onClick={(e) => e.stopPropagation()}>
+                                    <Button 
+                                        variant="outlined" 
+                                        color="error"
+                                        onClick={() => removeItem(item.id)}
+                                    >
+                                        Remove
+                                    </Button>
+                                </Box>
                             </Box>
                         ))}
 

@@ -141,13 +141,16 @@ function Shop() {
                   ${product.price}
                 </Typography>
                 <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={(e) => {
+                   sx={{ color: theme.palette.text.primary , 
+                    backgroundColor: '#333' ,
+                    transition: 'all 0.3s ease-in-out',
+                    '&:hover': { backgroundColor: '#515151' , boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
+                    marginTop: '10px'}}
+                    variant="contained"
+                    onClick={(e) => {
                     e.stopPropagation(); // Prevent the card click event from triggering
                     handleAddToCart(product);
                   }}
-                  sx={{ marginTop: '10px' }}
                 >
                   Add to Cart
                 </Button>

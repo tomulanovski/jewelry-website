@@ -1,21 +1,42 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';
+import axios from 'axios';
 import NavBar from '../components/navbar';
 import ImageCarousel from '../components/imageSlider';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '@mui/material/styles';
 
 function ProductPage() {
+  const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const product = location.state?.product;
+  const { id } = useParams();
+  const [product, setProduct] = useState(location.state?.product);
   
   // Get cart functions from context
-  const { addItem, getItem , updateQuantity } = useCart();
+  const { addItem, getItem, updateQuantity } = useCart();
+
+  // Fetch product if not available in state
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!product && id) {
+        try {
+          const response = await axios.get(`http://localhost:3000/product/${id}`);
+          setProduct(response.data);
+        } catch (error) {
+          console.error('Error loading product:', error);
+        }
+      }
+    };
+
+    fetchProduct();
+  }, [id, product]);
 
   if (!product) {
     return (
       <Box>
+        <NavBar />
         <Typography align="center" variant="h4" sx={{ marginTop: 5 }}>
           Product not found.
         </Typography>
@@ -113,8 +134,11 @@ function ProductPage() {
             ) : (
               // Show add to cart if item is not in cart
               <Button
+                sx={{ color: theme.palette.text.primary , 
+                  backgroundColor: '#333' ,
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': { backgroundColor: '#515151' , boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}
                 variant="contained"
-                color="primary"
                 onClick={handleAddToCart}
               >
                 Add to Cart
