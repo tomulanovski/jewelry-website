@@ -6,6 +6,7 @@ import NavBar from '../components/navbar';
 import ImageCarousel from '../components/imageSlider';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '@mui/material/styles';
+import QuantityInput from '../components/quantityInput';
 
 function ProductPage() {
   const theme = useTheme();
@@ -13,11 +14,10 @@ function ProductPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(location.state?.product);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   
-  // Get cart functions from context
-  const { addItem, getItem, updateQuantity } = useCart();
+  const { addItem, getItem } = useCart();
 
-  // Fetch product if not available in state
   useEffect(() => {
     const fetchProduct = async () => {
       if (!product && id) {
@@ -44,7 +44,6 @@ function ProductPage() {
     );
   }
 
-  // Extract images dynamically from product object
   const images = [];
   for (let i = 1; i <= 10; i++) {
     const imageUrl = product[`image${i}`];
@@ -53,14 +52,20 @@ function ProductPage() {
     }
   }
 
-  // Get current quantity in cart (if any)
   const cartItem = getItem(product.id);
-  
-  // Handle add to cart
+
+  const handleQuantityChange = (event, newValue) => {
+    if (newValue !== null) {
+      const value = Math.max(1, Math.min(newValue, product.quantity));
+      setSelectedQuantity(value);
+    }
+  };
+
   const handleAddToCart = () => {
-    addItem(product, 1);
-    // Optional: Show some feedback
-    // could use MUI's Snackbar for this
+    if (selectedQuantity <= product.quantity) {
+      addItem(product, selectedQuantity);
+      setSelectedQuantity(1);
+    }
   };
 
   return (
@@ -76,7 +81,6 @@ function ProductPage() {
           mt: 4,
         }}
       >
-        {/* Left Side: Image Carousel */}
         <Box
           sx={{
             flex: { xs: '1', lg: '2' },
@@ -88,7 +92,6 @@ function ProductPage() {
           <ImageCarousel items={images} width="100%" />
         </Box>
 
-        {/* Right Side: Product Details */}
         <Box
           sx={{
             flex: { xs: '1', lg: '1' },
@@ -102,46 +105,67 @@ function ProductPage() {
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
             {product.title}
           </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-            Price: ${product.price}
+          <Typography variant="h6" color='white'  sx={{ mb: 2 }}>
+            ${product.price}
           </Typography>
           <Typography variant="body1" sx={{ mb: 3 }}>
             {product.description}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Material: {product.material}
+
+          
+          <Typography 
+            variant="body2" 
+            color= {theme.palette.text.primary} 
+            sx={{ mb: 2 }}
+          >
+            {product.quantity > 0 ? `In Stock: ${product.quantity} available` : 'Out of Stock'}
           </Typography>
           
-          {/* Cart Section */}
           <Box sx={{ mt: 2 }}>
-            {cartItem ? (
-              // Show quantity controls if item is in cart
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
+            {product.quantity > 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    color: 'white',
+                    fontWeight: 500 
+                  }}
                 >
-                  -
-                </Button>
-                <Typography>{cartItem.quantity}</Typography>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
+                  Quantity:
+                </Typography>
+                <Box sx={{ width: '30%', minWidth: '120px' }}>
+                <QuantityInput
+                    value={selectedQuantity}
+                    onChange={handleQuantityChange}
+                    min={1}
+                    max={product.quantity}
+                    aria-label="Quantity input"
+                  />
+                </Box>
+                <Button
+                  sx={{ 
+                    color: theme.palette.text.primary,
+                    backgroundColor: '#333',
+                    transition: 'all 0.3s ease-in-out',
+                    '&:hover': { 
+                      backgroundColor: '#515151',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                    }
+                  }}
+                  variant="contained"
+                  onClick={handleAddToCart}
+                  disabled={product.quantity === 0}
                 >
-                  +
+                  Add to Cart
                 </Button>
               </Box>
             ) : (
-              // Show add to cart if item is not in cart
               <Button
-                sx={{ color: theme.palette.text.primary , 
-                  backgroundColor: '#333' ,
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': { backgroundColor: '#515151' , boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}
                 variant="contained"
-                onClick={handleAddToCart}
+                disabled
+                sx={{ width: '100%' }}
               >
-                Add to Cart
+                Out of Stock
               </Button>
             )}
           </Box>
