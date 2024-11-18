@@ -2,14 +2,13 @@ import { createContext, useContext, useReducer, useCallback, useEffect } from 'r
 
 const CartContext = createContext(null);
 
-// Initial state
 const initialState = {
   items: [],
   isLoading: true,
   error: null,
+  notification: null
 };
 
-// Reducer
 function cartReducer(state, action) {
   switch (action.type) {
     case 'SET_ITEMS':
@@ -54,51 +53,100 @@ function cartReducer(state, action) {
         error: action.payload,
         isLoading: false,
       };
+    case 'SET_NOTIFICATION':
+      return {
+        ...state,
+        notification: action.payload
+      };
     default:
       return state;
   }
 }
 
-// Provider
 function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Load cart from localStorage
   useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        dispatch({ type: 'SET_ITEMS', payload: JSON.parse(savedCart) });
-      } else {
+    const loadCart = () => {
+      try {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart);
+          // Validate cart data
+          if (Array.isArray(parsedCart) && parsedCart.every(item => 
+            item.id && typeof item.quantity === 'number' && item.quantity > 0
+          )) {
+            dispatch({ type: 'SET_ITEMS', payload: parsedCart });
+          } else {
+            throw new Error('Invalid cart data');
+          }
+        } else {
+          dispatch({ type: 'SET_ITEMS', payload: [] });
+        }
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to load cart' });
         dispatch({ type: 'SET_ITEMS', payload: [] });
       }
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error });
-    }
+    };
+
+    loadCart();
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    try {
-      localStorage.setItem('cart', JSON.stringify(state.items));
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error });
+    if (!state.isLoading) {
+      try {
+        localStorage.setItem('cart', JSON.stringify(state.items));
+      } catch (error) {
+        console.error('Error saving cart:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to save cart' });
+      }
     }
-  }, [state.items]);
+  }, [state.items, state.isLoading]);
 
-  // Actions
-  const addItem = useCallback((product, quantity = 1) => {
+  const addItem = useCallback((product, quantityToAdd) => {
+    if (!product?.id || !product?.quantity || quantityToAdd <= 0) {
+      dispatch({
+        type: 'SET_NOTIFICATION',
+        payload: { type: 'error', message: 'Invalid product data' }
+      });
+      return false;
+    }
+
+    const currentItem = state.items.find(item => item.id === product.id);
+    const currentQuantity = currentItem ? currentItem.quantity : 0;
+    
+    if (currentQuantity + quantityToAdd > product.quantity) {
+      dispatch({
+        type: 'SET_NOTIFICATION',
+        payload: { type: 'error', message: 'Not enough stock available' }
+      });
+      return false;
+    }
+  
     dispatch({
       type: 'ADD_ITEM',
-      payload: { ...product, quantity },
+      payload: { ...product, quantity: quantityToAdd }
+    });
+
+    dispatch({
+      type: 'SET_NOTIFICATION',
+      payload: { type: 'success', message: 'Item added to cart' }
+    });
+    return true;
+  }, [state.items]);
+
+  const removeItem = useCallback((productId) => {
+    if (!productId) return;
+    dispatch({ type: 'REMOVE_ITEM', payload: productId });
+    dispatch({
+      type: 'SET_NOTIFICATION',
+      payload: { type: 'success', message: 'Item removed from cart' }
     });
   }, []);
 
-  const removeItem = useCallback((productId) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: productId });
-  }, []);
-
   const updateQuantity = useCallback((productId, quantity) => {
+    if (!productId || quantity < 0) return;
     if (quantity < 1) {
       removeItem(productId);
       return;
@@ -111,6 +159,14 @@ function CartProvider({ children }) {
 
   const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
+    dispatch({
+      type: 'SET_NOTIFICATION',
+      payload: { type: 'success', message: 'Cart cleared' }
+    });
+  }, []);
+
+  const clearNotification = useCallback(() => {
+    dispatch({ type: 'SET_NOTIFICATION', payload: null });
   }, []);
 
   const getItem = useCallback(
@@ -134,10 +190,12 @@ function CartProvider({ children }) {
         items: state.items,
         isLoading: state.isLoading,
         error: state.error,
+        notification: state.notification,
         addItem,
         removeItem,
         updateQuantity,
         clearCart,
+        clearNotification,
         getItem,
         getTotalItems,
         getTotalPrice,
@@ -148,7 +206,6 @@ function CartProvider({ children }) {
   );
 }
 
-// Hook
 function useCart() {
   const context = useContext(CartContext);
   if (!context) {
@@ -157,4 +214,4 @@ function useCart() {
   return context;
 }
 
-export { CartProvider, useCart };  // Only export these
+export { CartProvider, useCart };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 import NavBar from '../components/navbar';
 import ImageCarousel from '../components/imageSlider';
@@ -15,17 +15,27 @@ function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState(location.state?.product);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(!location.state?.product);
+  const [error, setError] = useState(null);
   
-  const { addItem, getItem } = useCart();
+  const { addItem, getItem, notification, clearNotification } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!product && id) {
+        setIsLoading(true);
+        setError(null);
         try {
           const response = await axios.get(`http://localhost:3000/product/${id}`);
+          if (!response.data) {
+            throw new Error('Product not found');
+          }
           setProduct(response.data);
         } catch (error) {
           console.error('Error loading product:', error);
+          setError(error.message || 'Failed to load product');
+        } finally {
+          setIsLoading(false);
         }
       }
     };
@@ -33,40 +43,77 @@ function ProductPage() {
     fetchProduct();
   }, [id, product]);
 
-  if (!product) {
+  useEffect(() => {
+    setSelectedQuantity(1);
+  }, [product?.id]);
+
+  if (isLoading) {
     return (
       <Box>
         <NavBar />
-        <Typography align="center" variant="h4" sx={{ marginTop: 5 }}>
-          Product not found.
-        </Typography>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
       </Box>
     );
   }
 
-  const images = [];
-  for (let i = 1; i <= 10; i++) {
-    const imageUrl = product[`image${i}`];
-    if (imageUrl) {
-      images.push({ image: imageUrl, title: product.title });
-    }
+  if (error || !product) {
+    return (
+      <Box>
+        <NavBar />
+        <Typography align="center" variant="h4" sx={{ marginTop: 5, color: 'error.main' }}>
+          {error || 'Product not found'}
+        </Typography>
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Button variant="contained" onClick={() => navigate('/shop')}>
+            Return to Shop
+          </Button>
+        </Box>
+      </Box>
+    );
   }
 
+  const images = Object.entries(product)
+    .filter(([key, value]) => key.startsWith('image') && value)
+    .map(([_, value]) => ({ image: value, title: product.title }));
+
   const cartItem = getItem(product.id);
+  const availableStock = product.quantity - (cartItem?.quantity || 0);
 
   const handleQuantityChange = (event, newValue) => {
     if (newValue !== null) {
-      const value = Math.max(1, Math.min(newValue, product.quantity));
+      const value = Math.max(1, Math.min(newValue, availableStock));
       setSelectedQuantity(value);
     }
   };
 
   const handleAddToCart = () => {
-    if (selectedQuantity <= product.quantity) {
-      addItem(product, selectedQuantity);
-      setSelectedQuantity(1);
+    if (selectedQuantity <= availableStock) {
+      const success = addItem(product, selectedQuantity);
+      if (success) {
+        setSelectedQuantity(1);
+      }
     }
   };
+
+  const getStockMessage = () => {
+    if (product.quantity === 0) {
+      return 'Out of Stock';
+    }
+    if (cartItem) {
+      if (availableStock === 0) {
+        return `Maximum quantity (${cartItem.quantity}) already in cart`;
+      }
+      return `${availableStock} more available (${cartItem.quantity} in cart)`;
+    }
+    if (product.quantity <= 5) {
+      return `Only ${product.quantity} left in stock`;
+    }
+    return `${product.quantity} items available`;
+  };
+
+  const isMaxInCart = cartItem && availableStock === 0;
 
   return (
     <Box sx={{ padding: '20px' }}>
@@ -105,40 +152,33 @@ function ProductPage() {
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
             {product.title}
           </Typography>
-          <Typography variant="h6" color='white'  sx={{ mb: 2 }}>
+          <Typography variant="h6" color='white' sx={{ mb: 2 }}>
             ${product.price}
           </Typography>
           <Typography variant="body1" sx={{ mb: 3 }}>
             {product.description}
           </Typography>
 
-          
           <Typography 
             variant="body2" 
-            color= {theme.palette.text.primary} 
-            sx={{ mb: 2 }}
+            color={availableStock <= 5 ? 'error.main' : theme.palette.text.primary}
+            sx={{ mb: 2, fontWeight: availableStock <= 5 ? 'bold' : 'normal' }}
           >
-            {product.quantity > 0 ? `In Stock: ${product.quantity} available` : 'Out of Stock'}
+            {getStockMessage()}
           </Typography>
           
           <Box sx={{ mt: 2 }}>
-            {product.quantity > 0 ? (
+            {product.quantity > 0 && !isMaxInCart ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography 
-                  variant="subtitle2" 
-                  sx={{ 
-                    color: 'white',
-                    fontWeight: 500 
-                  }}
-                >
+                <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 500 }}>
                   Quantity:
                 </Typography>
                 <Box sx={{ width: '30%', minWidth: '120px' }}>
-                <QuantityInput
+                  <QuantityInput
                     value={selectedQuantity}
                     onChange={handleQuantityChange}
                     min={1}
-                    max={product.quantity}
+                    max={availableStock}
                     aria-label="Quantity input"
                   />
                 </Box>
@@ -154,7 +194,6 @@ function ProductPage() {
                   }}
                   variant="contained"
                   onClick={handleAddToCart}
-                  disabled={product.quantity === 0}
                 >
                   Add to Cart
                 </Button>
@@ -165,12 +204,29 @@ function ProductPage() {
                 disabled
                 sx={{ width: '100%' }}
               >
-                Out of Stock
+                {isMaxInCart ? 'Maximum Quantity in Cart' : 'Out of Stock'}
               </Button>
             )}
           </Box>
         </Box>
       </Box>
+
+      <Snackbar
+        open={notification !== null}
+        autoHideDuration={3000}
+        onClose={clearNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {notification && (
+          <Alert
+            onClose={clearNotification}
+            severity={notification.type}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
     </Box>
   );
 }
