@@ -33,6 +33,7 @@ function Cart() {
         }
     };
 
+    // not sure if i need it or not
     const getStockWarning = (item) => {
         if (item.quantity <= 5) {
             return `Only ${item.quantity} available in stock`;
@@ -203,10 +204,6 @@ function Cart() {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography>Items ({getTotalItems()}):</Typography>
                                 <Typography>${getTotalPrice().toFixed(2)}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography>Shipping:</Typography>
-                                <Typography>Free</Typography>
                             </Box>
                             <Divider sx={{ my: 2 }} />
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>

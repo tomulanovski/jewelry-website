@@ -1,69 +1,182 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Input from '../components/input';
-import Header from '../components/header';
-import Footer from '../components/footer';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Typography, 
+  Stepper, 
+  Step, 
+  StepLabel, 
+  Grid, 
+  Snackbar,
+  Alert
+} from '@mui/material';
+import { useCart } from '../contexts/CartContext'; 
+import NavBar from '../components/navbar';  
+import ShippingForm from '../components/checkout/ShippingForm';
+import PaymentSection from '../components/checkout/PaymentSection';
+import OrderSummary from '../components/checkout/OrderSummary';
+import OrderReview from '../components/checkout/OrderReview';
 
-function Checkout() {
-    const [cartItems, setCartItems] = useState([]);
-    const [totalPrice, setTotalPrice] = useState(0);
-    const [shippingDetails, setShippingDetails] = useState({
-        first_name: '', last_name: '', email: '', phone: '', street: '', city: '',
-        apt: '', country: '', post_code: '',
-    });
+const steps = ['Shipping Details', 'Payment', 'Review Order'];
 
-    useEffect(() => {
-        const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
-        setCartItems(storedCart);
+function CheckoutPage() {
+  const navigate = useNavigate();
+  const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const [activeStep, setActiveStep] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(null);
 
-        // Calculate total price
-        const total = storedCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        setTotalPrice(total);
-    }, []);
+  const [orderData, setOrderData] = useState({
+    shipping: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+      apartment: '',
+      city: '',
+      country: '',
+      postalCode: '',
+    },
+    payment: {
+      method: 'card',
+      cardDetails: null
+    }
+  });
 
-    const handleCheckout = async () => {
-        if (!shippingDetails.first_name || !shippingDetails.email || !shippingDetails.street) {
-            alert('Please fill in all shipping details');
-            return;
-        }
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate('/cart');
+    }
+  }, [items, navigate]);
 
-        const orderData = {
-            cartItems,
-            shippingDetails,
-        };
+  const handleShippingSubmit = (shippingData) => {
+    setOrderData(prev => ({
+      ...prev,
+      shipping: shippingData
+    }));
+    setActiveStep(1);
+  };
 
-        try {
-            const response = await axios.post('http://localhost:3000/checkout', orderData);
-            alert('Order placed successfully!');
-        } catch (error) {
-            console.error('Checkout error:', error);
-            alert('There was an error placing your order.');
-        }
-    };
+  const handlePaymentSubmit = (paymentData) => {
+    setOrderData(prev => ({
+      ...prev,
+      payment: paymentData
+    }));
+    setActiveStep(2);
+  };
 
-    return (
-        <div>
-            <Header />
-            <h1>Checkout</h1>
-            <div>
-                <h2>Order Summary</h2>
-                <p>Total: ${totalPrice.toFixed(2)}</p>
-            </div>
-            <h2>Shipping Details</h2>
-            <Input type="text" placeholder="First Name" value= {shippingDetails.first_name} onChange={(e) => setShippingDetails({ ...shippingDetails, first_name: e.target.value })} />
-            <Input type="text" placeholder="Last Name" value={shippingDetails.last_name} onChange={(e) => setShippingDetails({ ...shippingDetails, last_name: e.target.value })} />
-            <Input type="email" placeholder="Email" value={shippingDetails.email} onChange={(e) => setShippingDetails({ ...shippingDetails, email: e.target.value })} />
-            <Input type="text" placeholder="Phone" value={shippingDetails.phone} onChange={(e) => setShippingDetails({ ...shippingDetails, phone: e.target.value })} />
-            <Input type="text" placeholder="Street" value={shippingDetails.street} onChange={(e) => setShippingDetails({ ...shippingDetails, street: e.target.value })} />
-            <Input type="text" placeholder="City" value={shippingDetails.city} onChange={(e) => setShippingDetails({ ...shippingDetails, city: e.target.value })} />
-            <Input type="text" placeholder="Appartment" value={shippingDetails.apt} onChange={(e) => setShippingDetails({ ...shippingDetails, apt: e.target.value })} />
-            <Input type="text" placeholder="Country" value={shippingDetails.country} onChange={(e) => setShippingDetails({ ...shippingDetails, country: e.target.value })} />
-            <Input type="text" placeholder="Postcode/Zip" value={shippingDetails.post_code} onChange={(e) => setShippingDetails({ ...shippingDetails, post_code: e.target.value })} />
+  const handlePlaceOrder = async () => {
+    setIsProcessing(true);
+    setError(null);
 
-            <button onClick={handleCheckout}>Place Order</button>
-            <Footer />
-        </div>
-    );
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...orderData,
+          items: items,
+          totalAmount: getTotalPrice()
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to create order');
+
+      const order = await response.json();
+      
+      setNotification({
+        type: 'success',
+        message: 'Order placed successfully!'
+      });
+
+      clearCart();
+      setTimeout(() => {
+        navigate(`/order-confirmation/${order.id}`);
+      }, 2000);
+    } catch (err) {
+      setError('Failed to process order. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <Box>
+      <NavBar />
+      <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: { xs: 2, md: 4 } }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+          Checkout
+        </Typography>
+
+        <Stepper activeStep={activeStep} sx={{ mb: 4, display: { xs: 'none', md: 'flex' } }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
+            {activeStep === 0 && (
+              <ShippingForm
+                initialData={orderData.shipping}
+                onSubmit={handleShippingSubmit}
+              />
+            )}
+
+            {activeStep === 1 && (
+              <PaymentSection
+                amount={getTotalPrice()}
+                onSubmit={handlePaymentSubmit}
+                onBack={() => setActiveStep(0)}
+              />
+            )}
+
+            {activeStep === 2 && (
+              <OrderReview
+                orderData={orderData}
+                items={items}
+                total={getTotalPrice()}
+                onEdit={(step) => setActiveStep(step)}
+                onPlaceOrder={handlePlaceOrder}
+                isProcessing={isProcessing}
+              />
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <OrderSummary
+              items={items}
+              totalItems={getTotalItems()}
+              subtotal={getTotalPrice()}
+              total={getTotalPrice()}
+              isProcessing={isProcessing}
+            />
+          </Grid>
+        </Grid>
+
+        <Snackbar
+          open={notification !== null}
+          autoHideDuration={6000}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          {notification && (
+            <Alert
+              onClose={() => setNotification(null)}
+              severity={notification.type}
+              sx={{ width: '100%' }}
+            >
+              {notification.message}
+            </Alert>
+          )}
+        </Snackbar>
+      </Box>
+    </Box>
+  );
 }
 
-export default Checkout;
+export default CheckoutPage;
