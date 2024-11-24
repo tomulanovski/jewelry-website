@@ -8,7 +8,8 @@ import {
   StepLabel, 
   Grid, 
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useCart } from '../contexts/CartContext'; 
 import NavBar from '../components/navbar';  
@@ -16,6 +17,7 @@ import ShippingForm from '../components/checkout/ShippingForm';
 import PaymentSection from '../components/checkout/PaymentSection';
 import OrderSummary from '../components/checkout/OrderSummary';
 import OrderReview from '../components/checkout/OrderReview';
+import axios from 'axios';
 
 const steps = ['Shipping Details', 'Payment', 'Review Order'];
 
@@ -40,16 +42,11 @@ function CheckoutPage() {
       postalCode: '',
     },
     payment: {
-      method: 'card',
-      cardDetails: null
+      method: '',           // Will be 'paypal'
+      details: null,        // Will contain PayPal transaction details
+      orderId: null         // Will contain PayPal order ID
     }
   });
-
-  useEffect(() => {
-    if (items.length === 0) {
-      navigate('/cart');
-    }
-  }, [items, navigate]);
 
   const handleShippingSubmit = (shippingData) => {
     setOrderData(prev => ({
@@ -59,44 +56,72 @@ function CheckoutPage() {
     setActiveStep(1);
   };
 
-  const handlePaymentSubmit = (paymentData) => {
-    setOrderData(prev => ({
-      ...prev,
-      payment: paymentData
-    }));
-    setActiveStep(2);
+  const handlePaymentSubmit = async (paymentData) => {
+    try {
+      setIsProcessing(true);
+      
+      // Store payment details
+      setOrderData(prev => ({
+        ...prev,
+        payment: {
+          method: paymentData.method,
+          details: paymentData.details,
+          orderId: paymentData.details.orderId
+        }
+      }));
+  
+      setActiveStep(2);
+      
+      setNotification({
+        type: 'success',
+        message: 'Payment details confirmed!'
+      });
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error.response?.data?.error || 'Failed to process payment'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     setError(null);
-
+  
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...orderData,
-          items: items,
-          totalAmount: getTotalPrice()
-        })
+      // Updated to use axios and your payment route
+      const response = await axios.post('/payment/create-order', {
+        ...orderData,
+        items: items,
+        totalAmount: getTotalPrice(),
+        paymentDetails: {
+          paypalOrderId: orderData.payment.details.orderId,
+          paymentMethod: 'paypal',
+          transactionId: orderData.payment.details.id,
+          payerEmail: orderData.payment.details.payer?.email_address
+        }
       });
 
-      if (!response.ok) throw new Error('Failed to create order');
-
-      const order = await response.json();
+      const order = response.data;
       
       setNotification({
         type: 'success',
         message: 'Order placed successfully!'
       });
-
+  
       clearCart();
       setTimeout(() => {
         navigate(`/order-confirmation/${order.id}`);
       }, 2000);
-    } catch (err) {
-      setError('Failed to process order. Please try again.');
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Failed to process order';
+      setError(errorMessage);
+      setNotification({
+        type: 'error',
+        message: errorMessage
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -126,13 +151,20 @@ function CheckoutPage() {
                 onSubmit={handleShippingSubmit}
               />
             )}
-
             {activeStep === 1 && (
-              <PaymentSection
+            <PaymentSection
                 amount={getTotalPrice()}
+                items={items}          
                 onSubmit={handlePaymentSubmit}
                 onBack={() => setActiveStep(0)}
-              />
+                onError={(error) => {    
+                setError(error.message);
+                setNotification({
+                    type: 'error',
+                    message: error.message
+                });
+                }}
+            />
             )}
 
             {activeStep === 2 && (

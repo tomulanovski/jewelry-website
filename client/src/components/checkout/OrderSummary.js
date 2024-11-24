@@ -33,7 +33,7 @@ function OrderSummary({
               <Typography variant="body2" color="text.secondary">
                 {item.quantity}x
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" color="text.secondary">
                 {item.title}
               </Typography>
             </Box>
@@ -81,7 +81,7 @@ function OrderSummary({
         justifyContent: 'space-between',
         mb: 3
       }}>
-        <Typography variant="h6">Total</Typography>
+        <Typography variant="h6" color="text.secondary">Total</Typography>
         <Typography variant="h6">
           ${total.toFixed(2)}
         </Typography>

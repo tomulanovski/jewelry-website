@@ -3,88 +3,167 @@ import {
   Box, 
   Typography, 
   Button, 
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Paper,
-  Divider
+  CircularProgress,
+  Alert 
 } from '@mui/material';
-import PayPalButton from './PayPalButton'; // You'll need to implement this based on PayPal SDK
+import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import axios from 'axios';
 
-function PaymentSection({ amount, onSubmit, onBack }) {
-  const [paymentMethod, setPaymentMethod] = useState('card');
+function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Get PayPal script status
+  const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
 
-  const handlePaymentMethodChange = (event) => {
-    setPaymentMethod(event.target.value);
+  // Show loading while PayPal initializes
+  if (isPending) {
+    return (
+      <Paper sx={{ p: 3 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
+      </Paper>
+    );
+  }
+
+  // Show error if PayPal failed to load
+  if (isRejected) {
+    return (
+      <Paper sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Failed to load PayPal. Client ID: {process.env.REACT_APP_PAYPAL_CLIENT_ID}
+        </Alert>
+        <Button
+          onClick={onBack}
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          Back to Shipping
+        </Button>
+      </Paper>
+    );
+  }
+
+  const createOrder = async () => {
+    try {
+      setIsProcessing(true);
+      console.log('Creating order with amount:', amount);
+      
+      const response = await axios.post('/payment/create-order', {
+        items,
+        amount: amount.toString()
+      });
+      
+      console.log('Order created:', response.data);
+      return response.data.id;
+    } catch (err) {
+      console.error('Create order error:', err);
+      setError(err.response?.data?.error || 'Failed to create order');
+      throw err;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const onApprove = async (data, actions) => {
+    try {
+      setIsProcessing(true);
+      console.log('Payment approved:', data);
+
+      const response = await axios.post(`/payment/capture-payment/${data.orderID}`, {
+        items
+      });
+      
+      console.log('Payment captured:', response.data);
+      
+      onSubmit({
+        method: 'paypal',
+        details: response.data.details
+      });
+    } catch (err) {
+      console.error('Payment capture error:', err);
+      setError(err.response?.data?.error || 'Payment failed');
+      onError(err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <Paper sx={{ p: 3 }}>
-      <Typography variant="h6" sx={{ mb: 3 }}>
-        Payment Method
+      <Typography variant="h6" gutterBottom>
+        Secure Payment
       </Typography>
 
-      <RadioGroup
-        value={paymentMethod}
-        onChange={handlePaymentMethodChange}
-      >
-        <FormControlLabel 
-          value="card" 
-          control={<Radio />} 
-          label="Credit/Debit Card"
-        />
-        <FormControlLabel 
-          value="paypal" 
-          control={<Radio />} 
-          label="PayPal"
-        />
-      </RadioGroup>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" align="center" gutterBottom>
+          Total: ${Number(amount).toFixed(2)}
+        </Typography>
+      </Box>
 
-      <Divider sx={{ my: 3 }} />
-
-      {paymentMethod === 'card' ? (
-        <Box sx={{ mb: 3 }}>
-          {/* Implement your card payment form here */}
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Card payment implementation will depend on your chosen payment provider
-          </Typography>
-        </Box>
-      ) : (
-        <Box sx={{ mb: 3 }}>
-          <PayPalButton 
-            amount={amount}
-            onSuccess={(details) => onSubmit({ method: 'paypal', details })}
-          />
-        </Box>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
       )}
 
-      <Box sx={{ 
-        mt: 3, 
-        display: 'flex', 
-        justifyContent: 'space-between' 
-      }}>
-        <Button
-          onClick={onBack}
-          disabled={isProcessing}
-        >
-          Back to Shipping
-        </Button>
-        
-        {paymentMethod === 'card' && (
-          <Button
-            variant="contained"
-            onClick={() => onSubmit({ method: 'card' })}
-            disabled={isProcessing}
-            sx={{
-              backgroundColor: '#333',
-              '&:hover': { backgroundColor: '#555' }
-            }}
-          >
-            Continue to Review
-          </Button>
+      <Box sx={{ mb: 3 }}>
+        {isProcessing ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ mb: 3 }}>
+            <PayPalButtons
+              forceReRender={[amount]} // Add this to force re-render when amount changes
+              style={{
+                layout: "vertical",
+                shape: "rect",
+                height: 55
+              }}
+              createOrder={createOrder}
+              onApprove={onApprove}
+              onError={(err) => {
+                console.error('PayPal Button Error:', err);
+                setError('Payment failed. Please try again.');
+              }}
+              onCancel={() => {
+                console.log('Payment cancelled');
+                setError('Payment was cancelled. Please try again.');
+              }}
+            />
+          </Box>
         )}
       </Box>
+
+      <Button
+        onClick={onBack}
+        disabled={isProcessing}
+        fullWidth
+        sx={{ mt: 2 }}
+      >
+        Back to Shipping
+      </Button>
+
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100' }}>
+          <Typography variant="caption" display="block">
+            Debug Info:
+          </Typography>
+          <Typography variant="caption" display="block">
+            PayPal Status: {isPending ? 'Loading' : isRejected ? 'Failed' : 'Ready'}
+          </Typography>
+          <Typography variant="caption" display="block">
+            Amount: ${amount}
+          </Typography>
+          <Typography variant="caption" display="block">
+            Client ID: {process.env.REACT_APP_PAYPAL_CLIENT_ID?.substring(0, 10)}...
+          </Typography>
+        </Box>
+      )}
     </Paper>
   );
 }
