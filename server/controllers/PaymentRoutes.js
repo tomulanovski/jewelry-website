@@ -1,76 +1,109 @@
-// src/routes/payment.js
 import express from 'express';
 import axios from 'axios';
+
 const router = express.Router();
 
-// Environment variables setup
+// Environment variables
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
 const PAYPAL_API_URL = process.env.NODE_ENV === 'production'
   ? 'https://api-m.paypal.com'
   : 'https://api-m.sandbox.paypal.com';
 
+// Validation middleware
+const validateOrder = (req, res, next) => {
+  const { items } = req.body;
+  
+  if (!items?.length) {
+    return res.status(400).json({ error: 'No items provided' });
+  }
+
+  if (!items.every(item => item.price && item.quantity && item.title)) {
+    return res.status(400).json({ error: 'Invalid item data' });
+  }
+
+  next();
+};
+
 // Get PayPal access token
 async function getPayPalAccessToken() {
-  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
-  
   try {
-    const response = await axios.post(`${PAYPAL_API_URL}/v1/oauth2/token`, 
+    const response = await axios.post(
+      `${PAYPAL_API_URL}/v1/oauth2/token`,
       'grant_type=client_credentials',
       {
+        auth: {
+          username: PAYPAL_CLIENT_ID,
+          password: PAYPAL_CLIENT_SECRET
+        },
         headers: {
-          'Authorization': `Basic ${auth}`,
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
     );
     return response.data.access_token;
   } catch (error) {
-    console.error('PayPal Auth Error:', error);
+    console.error('PayPal Auth Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw new Error('Failed to get PayPal access token');
   }
 }
 
-// Create order route
+// Test auth endpoint
+router.get('/test-auth', async (req, res) => {
+  try {
+    const token = await getPayPalAccessToken();
+    res.json({ 
+      success: true, 
+      token: token.substring(0, 10) + '...',
+      environment: process.env.NODE_ENV
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.response?.data : undefined
+    });
+  }
+});
+
+// Backend payment.js
 router.post('/create-order', async (req, res) => {
   try {
-    const { items, shipping } = req.body;
-    const accessToken = await getPayPalAccessToken();
+    const { items } = req.body;
+    
+    console.log('Request items:', items); // Debug
 
-    // Calculate order total
+    if (!items?.length) {
+      return res.status(400).json({ error: 'No items provided' });
+    }
+
+    const accessToken = await getPayPalAccessToken();
+    console.log('Got PayPal token'); // Debug
+
     const orderTotal = items.reduce((sum, item) => 
       sum + (item.price * item.quantity), 0
     ).toFixed(2);
 
+    console.log('Order total:', orderTotal); // Debug
+
+    const orderData = {
+      intent: "CAPTURE",
+      purchase_units: [{
+        amount: {
+          currency_code: "USD",
+          value: orderTotal
+        }
+      }]
+    };
+
+    console.log('PayPal order request:', orderData); // Debug
+
     const order = await axios.post(
       `${PAYPAL_API_URL}/v2/checkout/orders`,
-      {
-        intent: "CAPTURE",
-        purchase_units: [{
-          amount: {
-            currency_code: "USD",
-            value: orderTotal,
-            breakdown: {
-              item_total: {
-                currency_code: "USD",
-                value: orderTotal
-              }
-            }
-          },
-          items: items.map(item => ({
-            name: item.title,
-            quantity: item.quantity.toString(),
-            unit_amount: {
-              currency_code: "USD",
-              value: item.price.toString()
-            }
-          }))
-        }],
-        application_context: {
-          shipping_preference: "SET_PROVIDED_ADDRESS",
-          user_action: "PAY_NOW",
-        }
-      },
+      orderData,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -79,14 +112,18 @@ router.post('/create-order', async (req, res) => {
       }
     );
 
+    console.log('PayPal response:', order.data); // Debug
     res.json(order.data);
   } catch (error) {
-    console.error('Create Order Error:', error);
-    res.status(500).json({ error: 'Failed to create order' });
+    console.error('Detailed error:', error.response?.data || error);
+    res.status(500).json({ 
+      error: 'Failed to create order',
+      details: error.response?.data
+    });
   }
 });
 
-// Capture payment route
+// Capture payment
 router.post('/capture-payment/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -103,46 +140,37 @@ router.post('/capture-payment/:orderId', async (req, res) => {
       }
     );
 
-    // Save order to database
     const paymentDetails = response.data;
-    const order = await saveOrderToDatabase({
-      paypalOrderId: paymentDetails.id,
-      status: paymentDetails.status,
-      amount: paymentDetails.purchase_units[0].amount.value,
-      payerEmail: paymentDetails.payer.email_address,
-      shippingAddress: paymentDetails.purchase_units[0].shipping,
-      items: req.body.items
-    });
+    console.log('Payment captured:', orderId);
 
+    // Here you would typically save to your database
+    // For now, we'll just return the PayPal response
     res.json({
-      orderId: order.id,
       status: 'success',
       details: paymentDetails
     });
   } catch (error) {
-    console.error('Capture Payment Error:', error);
-    res.status(500).json({ error: 'Failed to capture payment' });
+    console.error('Capture Payment Error:', error.response?.data || error);
+    res.status(500).json({ 
+      error: 'Failed to capture payment',
+      details: process.env.NODE_ENV === 'development' ? error.response?.data : undefined
+    });
   }
 });
 
-// Webhook handler for PayPal notifications
+// PayPal webhook handler
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const event = req.body;
+    console.log('Webhook received:', event.event_type);
     
-    switch (event.event_type) {
-      case 'PAYMENT.CAPTURE.COMPLETED':
-        await updateOrderStatus(event.resource.custom_id, 'paid');
-        break;
-      case 'PAYMENT.CAPTURE.DENIED':
-        await updateOrderStatus(event.resource.custom_id, 'failed');
-        break;
-    }
-
-    res.status(200).send('Webhook processed');
+    // Here you would verify the webhook signature
+    // and process different event types
+    
+    res.status(200).json({ received: true });
   } catch (error) {
     console.error('Webhook Error:', error);
-    res.status(500).send('Webhook processing failed');
+    res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 

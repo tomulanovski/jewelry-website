@@ -10,15 +10,14 @@ import {
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import axios from 'axios';
 
+axios.defaults.baseURL = 'http://localhost:3000';
+
 function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  
-  // Get PayPal script status
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
 
-  // Show loading while PayPal initializes
-  if (isPending) {
+  if (isPending || !isResolved) {
     return (
       <Paper sx={{ p: 3 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -28,18 +27,13 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
     );
   }
 
-  // Show error if PayPal failed to load
   if (isRejected) {
     return (
       <Paper sx={{ p: 3 }}>
         <Alert severity="error" sx={{ mb: 3 }}>
-          Failed to load PayPal. Client ID: {process.env.REACT_APP_PAYPAL_CLIENT_ID}
+          Failed to initialize payment system. Please try again later.
         </Alert>
-        <Button
-          onClick={onBack}
-          fullWidth
-          sx={{ mt: 2 }}
-        >
+        <Button onClick={onBack} fullWidth sx={{ mt: 2 }}>
           Back to Shipping
         </Button>
       </Paper>
@@ -48,43 +42,45 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
 
   const createOrder = async () => {
     try {
-      setIsProcessing(true);
-      console.log('Creating order with amount:', amount);
-      
-      const response = await axios.post('/payment/create-order', {
-        items,
-        amount: amount.toString()
+      console.log('Sending order data:', {
+        items: items.map(item => ({
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity
+        }))
       });
       
-      console.log('Order created:', response.data);
+      const response = await axios.post('/payment/create-order', {
+        items: items.map(item => ({
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      });
+      
+      console.log('Response:', response.data);
       return response.data.id;
     } catch (err) {
-      console.error('Create order error:', err);
-      setError(err.response?.data?.error || 'Failed to create order');
+      console.error('Full error:', err);
+      console.error('Response data:', err.response?.data);
       throw err;
-    } finally {
-      setIsProcessing(false);
     }
   };
 
-  const onApprove = async (data, actions) => {
+  const onApprove = async (data) => {
     try {
       setIsProcessing(true);
-      console.log('Payment approved:', data);
-
-      const response = await axios.post(`/payment/capture-payment/${data.orderID}`, {
-        items
-      });
-      
-      console.log('Payment captured:', response.data);
+      const response = await axios.post(`/payment/capture-payment/${data.orderID}`);
       
       onSubmit({
         method: 'paypal',
         details: response.data.details
       });
     } catch (err) {
-      console.error('Payment capture error:', err);
-      setError(err.response?.data?.error || 'Payment failed');
+      const errorMessage = err.response?.data?.details || 
+                          err.response?.data?.error || 
+                          'Payment failed';
+      setError(errorMessage);
       onError(err);
     } finally {
       setIsProcessing(false);
@@ -104,7 +100,7 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -115,26 +111,21 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{ mb: 3 }}>
-            <PayPalButtons
-              forceReRender={[amount]} // Add this to force re-render when amount changes
-              style={{
-                layout: "vertical",
-                shape: "rect",
-                height: 55
-              }}
-              createOrder={createOrder}
-              onApprove={onApprove}
-              onError={(err) => {
-                console.error('PayPal Button Error:', err);
-                setError('Payment failed. Please try again.');
-              }}
-              onCancel={() => {
-                console.log('Payment cancelled');
-                setError('Payment was cancelled. Please try again.');
-              }}
-            />
-          </Box>
+          <PayPalButtons
+            forceReRender={[amount]}
+            style={{
+              layout: "vertical",
+              shape: "rect",
+              height: 55
+            }}
+            createOrder={createOrder}
+            onApprove={onApprove}
+            onError={(err) => {
+              console.error('PayPal Error:', err);
+              setError('Payment failed. Please try again.');
+            }}
+            onCancel={() => setError('Payment was cancelled.')}
+          />
         )}
       </Box>
 
@@ -146,24 +137,6 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
       >
         Back to Shipping
       </Button>
-
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100' }}>
-          <Typography variant="caption" display="block">
-            Debug Info:
-          </Typography>
-          <Typography variant="caption" display="block">
-            PayPal Status: {isPending ? 'Loading' : isRejected ? 'Failed' : 'Ready'}
-          </Typography>
-          <Typography variant="caption" display="block">
-            Amount: ${amount}
-          </Typography>
-          <Typography variant="caption" display="block">
-            Client ID: {process.env.REACT_APP_PAYPAL_CLIENT_ID?.substring(0, 10)}...
-          </Typography>
-        </Box>
-      )}
     </Paper>
   );
 }

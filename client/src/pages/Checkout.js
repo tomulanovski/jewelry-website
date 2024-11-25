@@ -23,7 +23,7 @@ const steps = ['Shipping Details', 'Payment', 'Review Order'];
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const { items, getTotalPrice, getTotalItems, clearCart , shippingMethod } = useCart();
   const [activeStep, setActiveStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -186,6 +186,7 @@ function CheckoutPage() {
               subtotal={getTotalPrice()}
               total={getTotalPrice()}
               isProcessing={isProcessing}
+              shippingMethod = {shippingMethod}
             />
           </Grid>
         </Grid>

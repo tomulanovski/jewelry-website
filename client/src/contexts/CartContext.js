@@ -6,7 +6,8 @@ const initialState = {
   items: [],
   isLoading: true,
   error: null,
-  notification: null
+  notification: null,
+  shippingMethod: 'standard'
 };
 
 function cartReducer(state, action) {
@@ -58,6 +59,11 @@ function cartReducer(state, action) {
         ...state,
         notification: action.payload
       };
+      case 'SET_SHIPPING_METHOD':
+       return {
+        ...state,
+        shippingMethod: action.payload
+        };
     default:
       return state;
   }
@@ -183,6 +189,13 @@ function CartProvider({ children }) {
     () => state.items.reduce((total, item) => total + item.price * item.quantity, 0),
     [state.items]
   );
+  const setShippingMethod = useCallback((method) => {
+    dispatch({ type: 'SET_SHIPPING_METHOD', payload: method });
+  }, []);
+  
+  const getShippingCost = useCallback(() => {
+    return state.shippingMethod === 'express' ? 40 : 0;
+  }, [state.shippingMethod]);
 
   return (
     <CartContext.Provider
@@ -191,6 +204,9 @@ function CartProvider({ children }) {
         isLoading: state.isLoading,
         error: state.error,
         notification: state.notification,
+        shippingMethod: state.shippingMethod,
+        setShippingMethod,
+        getShippingCost,
         addItem,
         removeItem,
         updateQuantity,
