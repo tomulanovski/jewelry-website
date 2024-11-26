@@ -10,6 +10,7 @@ import CheckoutPage from './pages/Checkout';
 import Product from './pages/ProductPage';
 import { CartProvider } from './contexts/CartContext';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import OrderConfirmation from './pages/OrderConfirmation';
 
 function App() {
   const paypalOptions = {
@@ -38,6 +39,7 @@ function App() {
             <Route path="/shop/:category" element={<Shop />} />
             <Route path="/product/:id" element={<Product />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
           </Routes>
         </CartProvider>
       </BrowserRouter>

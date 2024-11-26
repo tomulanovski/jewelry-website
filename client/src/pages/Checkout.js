@@ -19,7 +19,7 @@ import OrderSummary from '../components/checkout/OrderSummary';
 import OrderReview from '../components/checkout/OrderReview';
 import axios from 'axios';
 
-const steps = ['Shipping Details', 'Payment', 'Review Order'];
+const steps = ['Shipping Details','Review Order', 'Payment'];
 
 function CheckoutPage() {
   const navigate = useNavigate();
@@ -42,12 +42,13 @@ function CheckoutPage() {
       postalCode: '',
     },
     payment: {
-      method: '',           // Will be 'paypal'
-      details: null,        // Will contain PayPal transaction details
-      orderId: null         // Will contain PayPal order ID
+      method: '',    
+      details: null,        
+      orderId: null         
     }
   });
 
+  // handling shipping form. Changing the shipping data in object
   const handleShippingSubmit = (shippingData) => {
     setOrderData(prev => ({
       ...prev,
@@ -56,6 +57,7 @@ function CheckoutPage() {
     setActiveStep(1);
   };
 
+  // 
   const handlePaymentSubmit = async (paymentData) => {
     try {
       setIsProcessing(true);
@@ -85,46 +87,12 @@ function CheckoutPage() {
       setIsProcessing(false);
     }
   };
-
-  const handlePlaceOrder = async () => {
-    setIsProcessing(true);
-    setError(null);
-  
-    try {
-      // Updated to use axios and your payment route
-      const response = await axios.post('/payment/create-order', {
-        ...orderData,
-        items: items,
-        totalAmount: getTotalPrice(),
-        paymentDetails: {
-          paypalOrderId: orderData.payment.details.orderId,
-          paymentMethod: 'paypal',
-          transactionId: orderData.payment.details.id,
-          payerEmail: orderData.payment.details.payer?.email_address
-        }
-      });
-
-      const order = response.data;
-      
-      setNotification({
-        type: 'success',
-        message: 'Order placed successfully!'
-      });
-  
-      clearCart();
-      setTimeout(() => {
-        navigate(`/order-confirmation/${order.id}`);
-      }, 2000);
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Failed to process order';
-      setError(errorMessage);
-      setNotification({
-        type: 'error',
-        message: errorMessage
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleError = (error) => {
+    setError(error.message);
+    setNotification({
+      type: 'error',
+      message: error.message
+    });
   };
 
   return (
@@ -145,38 +113,49 @@ function CheckoutPage() {
 
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
-            {activeStep === 0 && (
-              <ShippingForm
-                initialData={orderData.shipping}
-                onSubmit={handleShippingSubmit}
-              />
-            )}
-            {activeStep === 1 && (
-            <PaymentSection
-                amount={getTotalPrice()}
-                items={items}          
-                onSubmit={handlePaymentSubmit}
-                onBack={() => setActiveStep(0)}
-                onError={(error) => {    
-                setError(error.message);
-                setNotification({
-                    type: 'error',
-                    message: error.message
-                });
-                }}
-            />
-            )}
+          {activeStep === 0 && (
+  <ShippingForm
+    initialData={orderData.shipping}
+    onSubmit={handleShippingSubmit}
+  />
+)}
 
-            {activeStep === 2 && (
-              <OrderReview
-                orderData={orderData}
-                items={items}
-                total={getTotalPrice()}
-                onEdit={(step) => setActiveStep(step)}
-                onPlaceOrder={handlePlaceOrder}
-                isProcessing={isProcessing}
-              />
-            )}
+{activeStep === 1 && (
+  <OrderReview
+    orderData={orderData}
+    items={items}
+    total={getTotalPrice()}
+    onEdit={(step) => setActiveStep(step)}
+    onPlaceOrder={() => setActiveStep(2)}
+    isProcessing={isProcessing}
+  />
+)}
+
+{activeStep === 2 && (
+  <PaymentSection
+    amount={getTotalPrice()}
+    items={items}          
+    onSubmit={(paymentData) => {
+      handlePaymentSubmit(paymentData);
+      navigate(`/order-confirmation/${paymentData.details.orderId}`, {
+        state: {
+          orderDetails: {
+            id: paymentData.details.orderId,
+            items: items,
+            shipping: orderData.shipping,
+            shippingMethod: shippingMethod,
+            subtotal: getTotalPrice(),
+            total: getTotalPrice() + (shippingMethod === 'express' ? 40 : 0),
+            payment: paymentData
+          }
+        }
+      });
+      clearCart();
+    }}
+    onBack={() => setActiveStep(1)}
+    onError={handleError}
+  />
+)}
           </Grid>
 
           <Grid item xs={12} md={4}>

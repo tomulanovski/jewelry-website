@@ -52,24 +52,8 @@ async function getPayPalAccessToken() {
   }
 }
 
-// Test auth endpoint
-router.get('/test-auth', async (req, res) => {
-  try {
-    const token = await getPayPalAccessToken();
-    res.json({ 
-      success: true, 
-      token: token.substring(0, 10) + '...',
-      environment: process.env.NODE_ENV
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.response?.data : undefined
-    });
-  }
-});
 
-// Backend payment.js
+ // create order api call
 router.post('/create-order', async (req, res) => {
   try {
     const { items } = req.body;
