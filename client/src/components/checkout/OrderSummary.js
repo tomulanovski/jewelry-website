@@ -14,8 +14,7 @@ function OrderSummary({
    isProcessing,
    shippingMethod
 }) {
-   const shippingCost = shippingMethod === 'express' ? 40 : 0;
-   const finalTotal = total + shippingCost;
+
 
    return (
        <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
@@ -87,7 +86,7 @@ function OrderSummary({
            }}>
                <Typography variant="h6" color="text.secondary">Total</Typography>
                <Typography variant="h6">
-                   ${finalTotal.toFixed(2)}
+                   ${total.toFixed(2)}
                </Typography>
            </Box>
        </Paper>

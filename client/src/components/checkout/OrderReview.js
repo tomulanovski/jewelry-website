@@ -13,12 +13,15 @@ import {
 function OrderReview({ 
  orderData, 
  items, 
+ subtotal,
  total,
  shippingMethod, 
  onEdit,
  isProcessing 
 }) {
- const totalWithShipping = total + (shippingMethod === 'express' ? 40 : 0);
+
+  const shippingCost = shippingMethod === 'express' ? 40 : 0;
+  const sub = total + shippingCost;
 
  return (
    <Paper sx={{ p: 3 }}>
@@ -121,7 +124,7 @@ function OrderReview({
            Subtotal
          </Typography>
          <Typography variant="body2">
-           ${total.toFixed(2)}
+           ${subtotal.toFixed(2)}
          </Typography>
        </Box>
        <Box sx={{ 
@@ -148,7 +151,7 @@ function OrderReview({
      }}>
        <Typography variant="h6">Total</Typography>
        <Typography variant="h6">
-         ${totalWithShipping.toFixed(2)}
+         ${total.toFixed(2)}
        </Typography>
      </Box>
 
@@ -170,7 +173,7 @@ function OrderReview({
        {isProcessing ? (
          <CircularProgress size={24} color="inherit" />
        ) : (
-         `Place Order - $${totalWithShipping.toFixed(2)}`
+         `Place Order - $${total.toFixed(2)}`
        )}
      </Button>
 

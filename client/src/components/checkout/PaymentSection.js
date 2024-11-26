@@ -12,7 +12,8 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
 
-function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
+function PaymentSection({total, shipping, items, onSubmit, onBack, onError }) {
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
@@ -95,7 +96,7 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
 
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" align="center" gutterBottom>
-          Total: ${Number(amount).toFixed(2)}
+          Total: ${Number(total).toFixed(2)}
         </Typography>
       </Box>
 
@@ -112,7 +113,7 @@ function PaymentSection({ amount, items, onSubmit, onBack, onError }) {
           </Box>
         ) : (
           <PayPalButtons
-            forceReRender={[amount]}
+            forceReRender={[total]}
             style={{
               layout: "vertical",
               shape: "rect",

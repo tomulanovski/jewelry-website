@@ -17,7 +17,6 @@ import ShippingForm from '../components/checkout/ShippingForm';
 import PaymentSection from '../components/checkout/PaymentSection';
 import OrderSummary from '../components/checkout/OrderSummary';
 import OrderReview from '../components/checkout/OrderReview';
-import axios from 'axios';
 
 const steps = ['Shipping Details','Review Order', 'Payment'];
 
@@ -28,6 +27,9 @@ function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(null);
+
+
+const totalWithShipping = getTotalPrice() + (shippingMethod === 'express' ? 40 : 0);
 
   const [orderData, setOrderData] = useState({
     shipping: {
@@ -124,7 +126,9 @@ function CheckoutPage() {
   <OrderReview
     orderData={orderData}
     items={items}
-    total={getTotalPrice()}
+    subtotal = {getTotalPrice()}
+    total={totalWithShipping}
+    shippingMethod = {shippingMethod}
     onEdit={(step) => setActiveStep(step)}
     onPlaceOrder={() => setActiveStep(2)}
     isProcessing={isProcessing}
@@ -133,7 +137,8 @@ function CheckoutPage() {
 
 {activeStep === 2 && (
   <PaymentSection
-    amount={getTotalPrice()}
+    total={totalWithShipping}
+    shipping = {shippingMethod}
     items={items}          
     onSubmit={(paymentData) => {
       handlePaymentSubmit(paymentData);
@@ -162,8 +167,8 @@ function CheckoutPage() {
             <OrderSummary
               items={items}
               totalItems={getTotalItems()}
-              subtotal={getTotalPrice()}
-              total={getTotalPrice()}
+              subtotal = {getTotalPrice()}
+              total={totalWithShipping}
               isProcessing={isProcessing}
               shippingMethod = {shippingMethod}
             />
