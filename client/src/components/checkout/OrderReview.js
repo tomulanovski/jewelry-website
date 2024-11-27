@@ -156,7 +156,8 @@ function OrderReview({
      </Box>
 
      <Alert severity="info" sx={{ mb: 3 }}>
-       By placing this order, you agree to our Terms of Service and Privacy Policy.
+     By paying with your card, you acknowledge that your data will be processed by PayPal 
+     subject to the PayPal Privacy Statement available at PayPal.com
      </Alert>
 
      <Button

@@ -53,37 +53,55 @@ async function getPayPalAccessToken() {
 }
 
 
- // create order api call
 router.post('/create-order', async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, shippingCost, total } = req.body;
     
-    console.log('Request items:', items); // Debug
-
     if (!items?.length) {
       return res.status(400).json({ error: 'No items provided' });
     }
 
+    // Get PayPal access token first
     const accessToken = await getPayPalAccessToken();
-    console.log('Got PayPal token'); // Debug
-
-    const orderTotal = items.reduce((sum, item) => 
+    
+    // Calculate totals
+    const serverCalculatedSubtotal = items.reduce((sum, item) => 
       sum + (item.price * item.quantity), 0
-    ).toFixed(2);
+    );
+    const serverCalculatedTotal = serverCalculatedSubtotal + Number(shippingCost);
 
-    console.log('Order total:', orderTotal); // Debug
+    // Format all monetary values
+    const formattedSubtotal = serverCalculatedSubtotal.toFixed(2);
+    const formattedShipping = Number(shippingCost).toFixed(2);
+    const formattedTotal = serverCalculatedTotal.toFixed(2);
 
     const orderData = {
       intent: "CAPTURE",
       purchase_units: [{
         amount: {
           currency_code: "USD",
-          value: orderTotal
-        }
+          value: formattedTotal,
+          breakdown: {
+            item_total: {
+              currency_code: "USD",
+              value: formattedSubtotal
+            },
+            shipping: {
+              currency_code: "USD",
+              value: formattedShipping
+            }
+          }
+        },
+        items: items.map(item => ({
+          name: item.title,
+          unit_amount: {
+            currency_code: "USD",
+            value: Number(item.price).toFixed(2)
+          },
+          quantity: item.quantity
+        }))
       }]
     };
-
-    console.log('PayPal order request:', orderData); // Debug
 
     const order = await axios.post(
       `${PAYPAL_API_URL}/v2/checkout/orders`,
@@ -96,7 +114,6 @@ router.post('/create-order', async (req, res) => {
       }
     );
 
-    console.log('PayPal response:', order.data); // Debug
     res.json(order.data);
   } catch (error) {
     console.error('Detailed error:', error.response?.data || error);
@@ -106,7 +123,6 @@ router.post('/create-order', async (req, res) => {
     });
   }
 });
-
 // Capture payment
 router.post('/capture-payment/:orderId', async (req, res) => {
   try {

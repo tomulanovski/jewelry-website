@@ -138,6 +138,7 @@ const totalWithShipping = getTotalPrice() + (shippingMethod === 'express' ? 40 :
 {activeStep === 2 && (
   <PaymentSection
     total={totalWithShipping}
+    subtotal = {getTotalPrice()}
     shipping = {shippingMethod}
     items={items}          
     onSubmit={(paymentData) => {

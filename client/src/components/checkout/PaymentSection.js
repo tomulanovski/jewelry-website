@@ -12,7 +12,7 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
 
-function PaymentSection({total, shipping, items, onSubmit, onBack, onError }) {
+function PaymentSection({total,subtotal, shipping, items, onSubmit, onBack, onError }) {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -43,27 +43,24 @@ function PaymentSection({total, shipping, items, onSubmit, onBack, onError }) {
 
   const createOrder = async () => {
     try {
-      console.log('Sending order data:', {
-        items: items.map(item => ({
-          title: item.title,
-          price: item.price,
-          quantity: item.quantity
-        }))
-      });
+      const shippingCost = shipping === 'express' ? 40 : 0;
       
       const response = await axios.post('/payment/create-order', {
         items: items.map(item => ({
           title: item.title,
           price: item.price,
           quantity: item.quantity
-        }))
+        })),
+        shippingCost,
+        total
       });
+  
+      console.log('Full PayPal response:', response.data); // Add this log
+      console.log('Order ID:', response.data.id);  // Add this log
       
-      console.log('Response:', response.data);
       return response.data.id;
     } catch (err) {
       console.error('Full error:', err);
-      console.error('Response data:', err.response?.data);
       throw err;
     }
   };
@@ -75,11 +72,13 @@ function PaymentSection({total, shipping, items, onSubmit, onBack, onError }) {
       
       onSubmit({
         method: 'paypal',
-        details: response.data.details
+        details: {
+          orderId: data.orderID  // This is the PayPal order ID we need
+        }
       });
     } catch (err) {
-      const errorMessage = err.response?.data?.details || 
-                          err.response?.data?.error || 
+      const errorMessage = err.response?.data?.details ||
+                          err.response?.data?.error ||
                           'Payment failed';
       setError(errorMessage);
       onError(err);
