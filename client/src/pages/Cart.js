@@ -10,36 +10,37 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import QuantityInput from '../components/quantityInput';
 
 function Cart() {
-   const { 
-     items, 
-     getTotalItems, 
-     getTotalPrice, 
-     updateQuantity, 
-     removeItem, 
-     notification, 
-     clearNotification,
-     setShippingMethod
-   } = useCart();
-   const navigate = useNavigate();
-   const [expressShipping, setExpressShipping] = useState(false);
-
-   const handleProductClick = (product) => {
-       navigate(`/product/${product.id}`, { state: { product } });
-   };
-
-   const handleQuantityChange = (item, newValue) => {
-       if (newValue !== null) {
-           const value = Math.max(1, Math.min(newValue, item.quantity));
-           updateQuantity(item.id, value);
-       }
-   };
-
-   const getStockWarning = (item) => {
-       if (item.quantity <= 5) {
-           return `Only ${item.quantity} available in stock`;
-       }
-       return null;
-   };
+    const { 
+      items, 
+      getTotalItems, 
+      getTotalPrice, 
+      updateQuantity, 
+      removeItem, 
+      notification, 
+      clearNotification,
+      setShippingMethod
+    } = useCart();
+    const navigate = useNavigate();
+    const [expressShipping, setExpressShipping] = useState(false);
+  
+    const handleProductClick = (product) => {
+      navigate(`/product/${product.id}`, { state: { product } });
+    };
+  
+    const handleQuantityChange = (item, newValue) => {
+        if (newValue !== null) {
+            const value = Math.max(1, Math.min(newValue, item.stock_quantity));
+            updateQuantity(item.id, value);
+        }
+    };
+  
+    const getStockWarning = (item) => {
+      const availableStock = item.stock_quantity - item.quantity;
+    //   if (availableStock <= 5) {
+        return `Only ${availableStock} more available in stock`;
+    //   }
+    //   return null;
+    };
 
    const handleCheckout = () => {
        setShippingMethod(expressShipping ? 'express' : 'standard');
@@ -160,13 +161,13 @@ function Cart() {
                                                gap: 1
                                            }}>
                                                <Box sx={{ width: '120px' }}>
-                                                   <QuantityInput
-                                                       value={item.quantity}
-                                                       onChange={(e, newValue) => handleQuantityChange(item, newValue)}
-                                                       min={1}
-                                                       max={item.quantity}
-                                                       aria-label="Quantity input"
-                                                   />
+                                               <QuantityInput
+                                                    value={item.quantity}
+                                                    onChange={(e, newValue) => handleQuantityChange(item, newValue)}
+                                                    min={1}
+                                                    max={item.stock_quantity}
+                                                    aria-label="Quantity input"
+                                                />
                                                </Box>
                                                <IconButton 
                                                    onClick={() => removeItem(item.id)}

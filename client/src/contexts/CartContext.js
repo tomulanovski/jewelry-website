@@ -23,10 +23,17 @@ function cartReducer(state, action) {
       const items = existingItem
         ? state.items.map(item =>
             item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              ? { 
+                  ...item, 
+                  quantity: item.quantity + action.payload.quantity,
+                  stock_quantity: action.payload.stock_quantity
+                }
               : item
           )
-        : [...state.items, action.payload];
+        : [...state.items, {
+            ...action.payload,
+            stock_quantity: action.payload.stock_quantity
+          }];
       return { ...state, items };
     }
     case 'REMOVE_ITEM':
@@ -39,7 +46,10 @@ function cartReducer(state, action) {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
-            ? { ...item, quantity: action.payload.quantity }
+            ? { 
+                ...item, 
+                quantity: action.payload.quantity,
+              }
             : item
         ),
       };
@@ -59,11 +69,11 @@ function cartReducer(state, action) {
         ...state,
         notification: action.payload
       };
-      case 'SET_SHIPPING_METHOD':
-       return {
+    case 'SET_SHIPPING_METHOD':
+      return {
         ...state,
         shippingMethod: action.payload
-        };
+      };
     default:
       return state;
   }
@@ -78,9 +88,11 @@ function CartProvider({ children }) {
         const savedCart = localStorage.getItem('cart');
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
-          // Validate cart data
           if (Array.isArray(parsedCart) && parsedCart.every(item => 
-            item.id && typeof item.quantity === 'number' && item.quantity > 0
+            item.id && 
+            typeof item.quantity === 'number' && 
+            item.quantity > 0 &&
+            typeof item.stock_quantity === 'number'
           )) {
             dispatch({ type: 'SET_ITEMS', payload: parsedCart });
           } else {
@@ -129,10 +141,14 @@ function CartProvider({ children }) {
       });
       return false;
     }
-  
+
     dispatch({
       type: 'ADD_ITEM',
-      payload: { ...product, quantity: quantityToAdd }
+      payload: { 
+        ...product,
+        quantity: quantityToAdd,
+        stock_quantity: product.quantity
+      }
     });
 
     dispatch({
@@ -157,6 +173,18 @@ function CartProvider({ children }) {
       removeItem(productId);
       return;
     }
+    
+    const item = state.items.find(item => item.id === productId);
+    if (!item) return;
+
+    if (quantity > item.stock_quantity) {
+      dispatch({
+        type: 'SET_NOTIFICATION',
+        payload: { type: 'error', message: 'Not enough stock available' }
+      });
+      return;
+    }
+
     dispatch({
       type: 'UPDATE_QUANTITY',
       payload: { id: productId, quantity },
@@ -189,6 +217,7 @@ function CartProvider({ children }) {
     () => state.items.reduce((total, item) => total + item.price * item.quantity, 0),
     [state.items]
   );
+
   const setShippingMethod = useCallback((method) => {
     dispatch({ type: 'SET_SHIPPING_METHOD', payload: method });
   }, []);

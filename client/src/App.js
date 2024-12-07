@@ -17,10 +17,10 @@ function App() {
     "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID,
     currency: "USD",
     intent: "capture",
-    debug: true  // Add this for development
+    debug: true  // for development
   };
 
-  // Add this to debug
+  //  to debug
   console.log('PayPal Options:', {
     ...paypalOptions,
     "client-id": paypalOptions["client-id"]?.substring(0, 10) + '...'

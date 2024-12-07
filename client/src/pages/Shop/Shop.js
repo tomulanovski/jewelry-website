@@ -93,9 +93,12 @@ function Shop() {
   const handleAddToCart = (event, product) => {
     event.stopPropagation();
     if (isProductAvailable(product)) {
-      addItem(product, 1);
+        addItem({
+            ...product,
+            stock_quantity: product.quantity 
+        }, 1);
     }
-  };
+};
 
   if (isLoading) {
     return (
