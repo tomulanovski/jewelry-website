@@ -26,13 +26,11 @@ function cartReducer(state, action) {
               ? { 
                   ...item, 
                   quantity: item.quantity + action.payload.quantity,
-                  stock_quantity: action.payload.stock_quantity
                 }
               : item
           )
         : [...state.items, {
             ...action.payload,
-            stock_quantity: action.payload.stock_quantity
           }];
       return { ...state, items };
     }
@@ -41,18 +39,19 @@ function cartReducer(state, action) {
         ...state,
         items: state.items.filter(item => item.id !== action.payload),
       };
-    case 'UPDATE_QUANTITY':
-      return {
-        ...state,
-        items: state.items.map(item =>
-          item.id === action.payload.id
-            ? { 
-                ...item, 
-                quantity: action.payload.quantity,
-              }
-            : item
-        ),
-      };
+      case 'UPDATE_QUANTITY':
+        return {
+          ...state,
+          items: state.items.map(item =>
+            item.id === action.payload.id
+              ? { 
+                  ...item,
+                  quantity: action.payload.quantity,
+                  stock_quantity: action.payload.stock_quantity // Preserve stock_quantity
+                }
+              : item
+          ),
+        };
     case 'CLEAR_CART':
       return {
         ...state,
@@ -133,8 +132,9 @@ function CartProvider({ children }) {
 
     const currentItem = state.items.find(item => item.id === product.id);
     const currentQuantity = currentItem ? currentItem.quantity : 0;
+    const stockQuantity = currentItem ? currentItem.stock_quantity : product.quantity
     
-    if (currentQuantity + quantityToAdd > product.quantity) {
+    if (currentQuantity + quantityToAdd > stockQuantity) {
       dispatch({
         type: 'SET_NOTIFICATION',
         payload: { type: 'error', message: 'Not enough stock available' }
@@ -147,7 +147,7 @@ function CartProvider({ children }) {
       payload: { 
         ...product,
         quantity: quantityToAdd,
-        stock_quantity: product.quantity
+        stock_quantity: stockQuantity
       }
     });
 
@@ -187,9 +187,13 @@ function CartProvider({ children }) {
 
     dispatch({
       type: 'UPDATE_QUANTITY',
-      payload: { id: productId, quantity },
+      payload: { 
+        id: productId, 
+        quantity,
+        stock_quantity: item.stock_quantity
+      }
     });
-  }, [removeItem]);
+},[removeItem, state.items]);
 
   const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
@@ -225,6 +229,7 @@ function CartProvider({ children }) {
   const getShippingCost = useCallback(() => {
     return state.shippingMethod === 'express' ? 40 : 0;
   }, [state.shippingMethod]);
+  
 
   return (
     <CartContext.Provider

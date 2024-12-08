@@ -18,7 +18,8 @@ function Cart() {
       removeItem, 
       notification, 
       clearNotification,
-      setShippingMethod
+      setShippingMethod,
+      addItem
     } = useCart();
     const navigate = useNavigate();
     const [expressShipping, setExpressShipping] = useState(false);
@@ -27,10 +28,10 @@ function Cart() {
       navigate(`/product/${product.id}`, { state: { product } });
     };
   
-    const handleQuantityChange = (item, newValue) => {
+    const handleQuantityChange = (item) => (event, newValue) => {
         if (newValue !== null) {
             const value = Math.max(1, Math.min(newValue, item.stock_quantity));
-            updateQuantity(item.id, value);
+            updateQuantity(item.id,value)
         }
     };
   
@@ -105,7 +106,7 @@ function Cart() {
                                    >
                                        <Box sx={{ display: 'flex', gap: 3 }}>
                                            <Box 
-                                               onClick={() => handleProductClick(item)}
+                                               onClick={() => handleProductClick(item)} // i pass item here so it handle it bad in product page becuase in context it checks for its quantity and if i pass thru shop it check product quantity and not item quantity. i want it to check product and not item so i need to have a way to pass product 
                                                sx={{ 
                                                    display: 'flex', 
                                                    gap: 3,
@@ -163,7 +164,7 @@ function Cart() {
                                                <Box sx={{ width: '120px' }}>
                                                <QuantityInput
                                                     value={item.quantity}
-                                                    onChange={(e, newValue) => handleQuantityChange(item, newValue)}
+                                                    onChange={handleQuantityChange(item)}
                                                     min={1}
                                                     max={item.stock_quantity}
                                                     aria-label="Quantity input"

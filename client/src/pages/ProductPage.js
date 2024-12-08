@@ -79,8 +79,7 @@ function ProductPage() {
     .map(([_, value]) => ({ image: value, title: product.title }));
 
   const cartItem = getItem(product.id);
-  // const availableStock = product.quantity - (cartItem?.quantity || 0);
-  const availableStock = cartItem?.stock_quantity - (cartItem?.quantity || 0);
+  const availableStock = (cartItem?.stock_quantity || product.quantity) - (cartItem?.quantity || 0);
 
 
   const handleQuantityChange = (event, newValue) => {
