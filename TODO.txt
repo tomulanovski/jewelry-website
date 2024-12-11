@@ -1,1 +1,3 @@
+
+- fix product page to see if it takes from context. currently its just loading
 -Search bar to search for specific product.

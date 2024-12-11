@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect , useCallback } from 'react';
+import axios from 'axios';
 
 const ProductContext = createContext(null);
 
@@ -42,9 +43,19 @@ const initialState = {
   
       fetchProducts();
     }, []);
+
+    const getProduct = useCallback((productId) => {
+        return state.products.find(product => product.id === productId);
+      }, [state.products]);
+    
   
     return (
-      <ProductContext.Provider value={{ ...state, dispatch }}>
+      <ProductContext.Provider 
+        value={{
+        ...state,
+        dispatch, 
+        getProduct 
+        }}>
         {children}
       </ProductContext.Provider>
     );

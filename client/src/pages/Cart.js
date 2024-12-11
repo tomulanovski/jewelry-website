@@ -18,14 +18,13 @@ function Cart() {
       removeItem, 
       notification, 
       clearNotification,
-      setShippingMethod,
-      addItem
+      setShippingMethod
     } = useCart();
     const navigate = useNavigate();
     const [expressShipping, setExpressShipping] = useState(false);
   
     const handleProductClick = (product) => {
-      navigate(`/product/${product.id}`, { state: { product } });
+        navigate(`/product/${product.id}`)
     };
   
     const handleQuantityChange = (item) => (event, newValue) => {

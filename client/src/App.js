@@ -9,6 +9,7 @@ import Shop from './pages/Shop/Shop';
 import CheckoutPage from './pages/Checkout';
 import Product from './pages/ProductPage';
 import { CartProvider } from './contexts/CartContext';
+import { ProductProvider } from './contexts/ProductContext';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import OrderConfirmation from './pages/OrderConfirmation';
 
@@ -29,6 +30,7 @@ function App() {
   return (
     <PayPalScriptProvider options={paypalOptions}>
       <BrowserRouter>
+      <ProductProvider>
         <CartProvider>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -42,6 +44,7 @@ function App() {
             <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
           </Routes>
         </CartProvider>
+        </ProductProvider>
       </BrowserRouter>
     </PayPalScriptProvider>
   );
