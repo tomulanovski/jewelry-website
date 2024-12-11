@@ -37,10 +37,10 @@ function Cart() {
   
     const getStockWarning = (item) => {
       const availableStock = item.stock_quantity - item.quantity;
-    //   if (availableStock <= 5) {
+      if (availableStock <= 5) {
         return `Only ${availableStock} more available in stock`;
-    //   }
-    //   return null;
+      }
+      return null;
     };
 
    const handleCheckout = () => {
