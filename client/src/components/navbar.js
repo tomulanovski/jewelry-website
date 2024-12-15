@@ -1,57 +1,67 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem, Badge } from '@mui/material'; // Add Badge import
+import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { useCart } from '../contexts/CartContext'; 
+import { useCart } from '../contexts/CartContext';
+import ProductSearch from './ProductSearch';
 
 const NavBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { getTotalItems } = useCart(); 
-  // State for dropdown menu
+  const { getTotalItems } = useCart();
   const [anchorEl, setAnchorEl] = useState(null);
 
-  // Handle opening the dropdown menu on hover
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // Handle closing the dropdown menu
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  // Handle clicking on dropdown items
   const handleMenuItemClick = (category) => {
     navigate(`/shop/${category.toLowerCase()}`);
     handleMenuClose();
   };
 
-  // Handle clicking the main "Shop" button
   const handleShopClick = () => {
     navigate('/shop');
   };
 
   return (
     <AppBar position="static" sx={{ backgroundColor: theme.palette.background.default }}>
-      <Toolbar>
+      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         {/* Logo/Brand */}
         <Typography
           variant="h6"
-          sx={{ flexGrow: 1, textDecoration: 'none', color: theme.palette.text.primary }}
+          sx={{ color: theme.palette.text.primary }}
         >
           <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>My Jewelry Store</Link>
         </Typography>
 
-        {/* Navigation Links */}
+        {/* Search Bar */}
+        <Box sx={{ 
+          position: 'absolute', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          width: '300px'
+        }}>
+          <ProductSearch />
+        </Box>
+
+        {/* Navigation Links and Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button color="inherit" sx={{ color: theme.palette.text.primary , '&:hover': { backgroundColor: '#333' } }} component={Link} to="/">
+          <Button 
+            color="inherit" 
+            sx={{ color: theme.palette.text.primary, '&:hover': { backgroundColor: '#333' } }} 
+            component={Link} 
+            to="/"
+          >
             Home
           </Button>
 
-          {/* Shop Button with Dropdown Menu */}
           <Button
             color="inherit"
             sx={{ color: theme.palette.text.primary }}
@@ -63,11 +73,10 @@ const NavBar = () => {
             Shop
           </Button>
 
-          {/* Dropdown Menu for Categories */}
           <Menu
             sx={{
               '& .MuiPaper-root': {
-                backgroundColor: '#000', // Black background for the menu
+                backgroundColor: '#000',
               },
             }}
             id="shop-menu"
@@ -78,53 +87,52 @@ const NavBar = () => {
               onMouseLeave: handleMenuClose,
             }}
           >
-            <MenuItem onClick={() => handleMenuItemClick('')}
-            sx={{ '&:hover': { backgroundColor: '#333' } }}>
-            Full collection</MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Full collection
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('Earrings')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Earrings
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('Rings')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Rings
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('Necklaces')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Necklaces
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('Bracelets')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Bracelets
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick('Engagements')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
+              Engagements
+            </MenuItem>
+          </Menu>
 
-            <MenuItem onClick={() => handleMenuItemClick('Earrings')} 
-            sx={{ '&:hover': { backgroundColor: '#333' } }} >
-            Earrings</MenuItem>
-
-            <MenuItem onClick={() => handleMenuItemClick('Rings')}
-            sx={{ '&:hover': { backgroundColor: '#333' } }}>
-            Rings </MenuItem>
-
-            <MenuItem onClick={() => handleMenuItemClick('Necklaces')}
-            sx={{ '&:hover': { backgroundColor: '#333' } }} >
-            Necklaces </MenuItem>
-
-            <MenuItem onClick={() => handleMenuItemClick('Bracelets')}
-            sx={{ '&:hover': { backgroundColor: '#333' } }}>
-            Bracelets </MenuItem>
-  
-            <MenuItem onClick={() => handleMenuItemClick('Engagements')}
-            sx={{ '&:hover': { backgroundColor: '#333' } }} >
-            Engagements</MenuItem>
-            </Menu>
-
-          <Button color="inherit" sx={{ color: theme.palette.text.primary , '&:hover': { backgroundColor: '#333' } }} component={Link} to="/about">
+          <Button 
+            color="inherit" 
+            sx={{ color: theme.palette.text.primary, '&:hover': { backgroundColor: '#333' } }} 
+            component={Link} 
+            to="/about"
+          >
             About
           </Button>
-        </Box>
 
-        {/* Cart and Account Icons */}
-        <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
-          <Badge 
-            badgeContent={getTotalItems()} 
-            sx={{
-              '& .MuiBadge-badge': {
-                backgroundColor: theme.palette.text.primary, // Customize badge color
-                color: 'black'
-              }
-            }}
-          >
-            <ShoppingCartIcon />
-          </Badge>
-        </IconButton>
-        <IconButton component={Link} to="/account" sx={{ color: theme.palette.text.primary }}>
-          <AccountCircleIcon />
-        </IconButton>
+          <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
+            <Badge 
+              badgeContent={getTotalItems()} 
+              sx={{
+                '& .MuiBadge-badge': {
+                  backgroundColor: theme.palette.text.primary,
+                  color: 'black'
+                }
+              }}
+            >
+              <ShoppingCartIcon />
+            </Badge>
+          </IconButton>
+          <IconButton component={Link} to="/account" sx={{ color: theme.palette.text.primary }}>
+            <AccountCircleIcon />
+          </IconButton>
+        </Box>
       </Toolbar>
     </AppBar>
   );
