@@ -1,2 +1,4 @@
-
--Search bar to search for specific product.
+- need to put all images in a cloud and change the urls in the data base
+- need to create admin board that can add products,edit and do everything 
+- log in features?
+- 

@@ -1,91 +1,162 @@
+// auth.js
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import db from '../db.js';
-import session from 'express-session';
 import passport from 'passport';
 import { Strategy } from 'passport-local';
+import { body, validationResult } from 'express-validator';
 
-// things to add- requirements for password strength, to see that all get handles good with front end
 const router = express.Router();
 
+// Validation
+const validateRegistration = [
+    body('username')
+        .trim()
+        .isLength({ min: 3 })
+        .withMessage('Username must be at least 3 characters long'),
+    body('email')
+        .isEmail()
+        .normalizeEmail()
+        .withMessage('Must be a valid email address'),
+    body('password')
+        .isLength({ min: 8 })
+        .withMessage('Password must be at least 8 characters long')
+        .matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)
+        .withMessage('Password must contain at least one letter and one number')
+];
+
+// Middleware to check if user is authenticated
+const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).json({ error: 'Not authenticated' });
+};
+
+// Middleware to check if user is admin
+const isAdmin = async (req, res, next) => {
+    try {
+        const result = await db.query('SELECT is_admin FROM users WHERE id = $1', [req.user.id]);
+        if (result.rows[0].is_admin) {
+            return next();
+        }
+        res.status(403).json({ error: 'Not authorized' });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 // Register a new user
-router.post('/register', async (req, res) => {
+router.post('/register', validateRegistration, async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const { username, email, password } = req.body;
 
     try {
         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
         if (checkResult.rows.length > 0) {
-            return res.status(400).send("Email already exists. Try logging in."); // 400 Bad Request
+            return res.status(400).json({ error: "Email already exists" });
         }
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS)); // Ensure SALT_ROUNDS is parsed to an integer
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert the new user into the database
         const result = await db.query(
-            'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
-            [username, email, hashedPassword]
+            'INSERT INTO users (username, email, password, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, email, is_admin',
+            [username, email, hashedPassword, false]
         );
 
-        // Respond with the newly created user or a success message. need to redirect once i have pages
-        return res.status(201).json({ user: result.rows[0] }); // 201 Created
-
+        return res.status(201).json({ 
+            message: 'Registration successful',
+            user: result.rows[0] 
+        });
     } catch (err) {
-        console.error("User registration error:", err); // Log the error for debugging
-        return res.status(500).json({ error: 'User registration failed' }); // 500 Internal Server Error
+        console.error("Registration error:", err);
+        return res.status(500).json({ error: 'Registration failed' });
     }
 });
 
-// Login a user with passport
-router.post('/login', passport.authenticate('local', {
-    successRedirect: '/dashboard', // Redirect here upon success - need to have dashboard page
-    failureRedirect: '/login', // Redirect here upon failure 
+// Login configuration
+passport.use(new Strategy({
+    usernameField: 'email',
+    passwordField: 'password'
+}, async (email, password, done) => {
+    try {
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = result.rows[0];
+
+        if (!user) {
+            return done(null, false, { message: 'Invalid credentials' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return done(null, false, { message: 'Invalid credentials' });
+        }
+
+        return done(null, user);
+    } catch (error) {
+        return done(error);
+    }
 }));
 
-
-passport.use(new Strategy(async function verify(email,password,cb){
-        try {
-            const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-            const user = result.rows[0];
-
-            if (!user) {
-                return cb(null, false, { message: 'Incorrect email.' });
-            }
-
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (isMatch) {
-                return cb(null, user);
-            } else {
-                return cb(null, false, { message: 'Incorrect password.' });
-            }
-        } catch (error) {
-            return cb(error);
-        }
-    }
-));
-
-passport.serializeUser((user, cb) => {
-    cb(null, user.id);
-});
-
-// Deserialize user to retrieve user details from ID
-passport.deserializeUser(async (id, cb) => {
-    try {
-        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-        cb(null, result.rows[0]);
-    } catch (error) {
-        cb(error);
-    }
-});
-
-// Logout a user
-router.post('/logout', (req, res) => {
-    req.logout((err) => {
+// Login endpoint
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
         if (err) {
             return next(err);
         }
-        res.redirect('/'); // Redirect after logout
+        if (!user) {
+            return res.status(401).json({ error: info.message });
+        }
+        req.logIn(user, (err) => {
+            if (err) {
+                return next(err);
+            }
+            return res.json({
+                message: 'Login successful',
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    isAdmin: user.is_admin
+                }
+            });
+        });
+    })(req, res, next);
+});
+
+// Get current user
+router.get('/me', isAuthenticated, (req, res) => {
+    res.json({
+        id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        isAdmin: req.user.is_admin
     });
+});
+
+// Logout
+router.post('/logout', (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Logout failed' });
+        }
+        res.json({ message: 'Logout successful' });
+    });
+});
+
+// Admin-only routes
+router.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const result = await db.query('SELECT id, username, email, is_admin FROM users');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 export default router;

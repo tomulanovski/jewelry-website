@@ -1,0 +1,185 @@
+// src/context/AuthContext.js
+import React, { createContext, useReducer, useContext, useEffect } from 'react';
+import axios from 'axios';
+
+// Action Types
+const AUTH_ACTIONS = {
+  AUTH_START: 'AUTH_START',
+  AUTH_SUCCESS: 'AUTH_SUCCESS',
+  AUTH_FAILURE: 'AUTH_FAILURE',
+  LOGOUT: 'LOGOUT',
+  RESET_ERROR: 'RESET_ERROR'
+};
+
+// Initial state
+const initialState = {
+  user: null,
+  loading: true,
+  error: null,
+  isAuthenticated: false
+};
+
+// Reducer function
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case AUTH_ACTIONS.AUTH_START:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    
+    case AUTH_ACTIONS.AUTH_SUCCESS:
+      return {
+        ...state,
+        user: action.payload,
+        loading: false,
+        error: null,
+        isAuthenticated: true
+      };
+    
+    case AUTH_ACTIONS.AUTH_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+        isAuthenticated: false
+      };
+    
+    case AUTH_ACTIONS.LOGOUT:
+      return {
+        ...state,
+        user: null,
+        loading: false,
+        error: null,
+        isAuthenticated: false
+      };
+    
+    case AUTH_ACTIONS.RESET_ERROR:
+      return {
+        ...state,
+        error: null
+      };
+
+    default:
+      return state;
+  }
+};
+
+// Create context
+const AuthContext = createContext(null);
+
+// Provider component
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  // Check authentication status when app loads
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    dispatch({ type: AUTH_ACTIONS.AUTH_START });
+    try {
+      const response = await axios.get('http://localhost:3000/auth/me');
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_SUCCESS, 
+        payload: response.data 
+      });
+    } catch (error) {
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_FAILURE, 
+        payload: error.response?.data?.error || 'Authentication failed' 
+      });
+    }
+  };
+
+  const login = async (email, password) => {
+    dispatch({ type: AUTH_ACTIONS.AUTH_START });
+    try {
+      const response = await axios.post('http://localhost:3000/auth/login', { email, password });
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_SUCCESS, 
+        payload: response.data.user 
+      });
+      return response.data;
+    } catch (error) {
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_FAILURE,
+        payload: error.response?.data?.error || 'Login failed'
+      });
+      throw error;
+    }
+  };
+
+  const register = async (username, email, password) => {
+    dispatch({ type: AUTH_ACTIONS.AUTH_START });
+    try {
+      const response = await axios.post('http://localhost:3000/auth/register', {
+        username,
+        email,
+        password
+      });
+      return response.data;
+    } catch (error) {
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_FAILURE,
+        payload: error.response?.data?.error || 'Registration failed'
+      });
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.post('http://localhost:3000/auth/logout');
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    } catch (error) {
+      dispatch({ 
+        type: AUTH_ACTIONS.AUTH_FAILURE,
+        payload: 'Logout failed'
+      });
+    }
+  };
+
+  const resetError = () => {
+    dispatch({ type: AUTH_ACTIONS.RESET_ERROR });
+  };
+
+  // Values to be provided to the entire app
+  const value = {
+    ...state,
+    login,
+    logout,
+    register,
+    resetError
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {!state.loading && children}
+    </AuthContext.Provider>
+  );
+};
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Hook for protected routes
+export const useProtectedRoute = (requireAdmin = false) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  if (loading) return true;
+  
+  if (!isAuthenticated) return false;
+  
+  if (requireAdmin && !user?.isAdmin) return false;
+  
+  return true;
+};
