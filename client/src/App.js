@@ -1,8 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import { Login } from './pages/users/login';
+import { Register } from './pages/users/register';
+import { AdminDashboard } from './pages/users/admindashboard';
 import './App.css';
 import Cart from './pages/Cart';
 import Shop from './pages/Shop/Shop';
@@ -36,6 +37,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/:category" element={<Shop />} />
