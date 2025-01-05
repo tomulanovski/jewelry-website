@@ -115,11 +115,19 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.post('http://localhost:3000/auth/register', {
-        username,
-        email,
-        password
-      });
+      const response = await axios.post('http://localhost:3000/auth/register', 
+        {
+          username,
+          email,
+          password
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       return response.data;
     } catch (error) {
       dispatch({ 
@@ -128,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       });
       throw error;
     }
-  };
+};
 
   const logout = async () => {
     try {

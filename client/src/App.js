@@ -13,6 +13,7 @@ import { CartProvider } from './contexts/CartContext';
 import { ProductProvider } from './contexts/ProductContext';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import OrderConfirmation from './pages/OrderConfirmation';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   const paypalOptions = {
@@ -31,6 +32,7 @@ function App() {
   return (
     <PayPalScriptProvider options={paypalOptions}>
       <BrowserRouter>
+      <AuthProvider>
       <ProductProvider>
         <CartProvider>
           <Routes>
@@ -47,6 +49,7 @@ function App() {
           </Routes>
         </CartProvider>
         </ProductProvider>
+        </AuthProvider>
       </BrowserRouter>
     </PayPalScriptProvider>
   );

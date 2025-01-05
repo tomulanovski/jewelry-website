@@ -14,14 +14,19 @@ const validateRegistration = [
         .trim()
         .isLength({ min: 3 })
         .withMessage('Username must be at least 3 characters long'),
-    body('email')
+        body('email')
         .isEmail()
-        .normalizeEmail()
+        .normalizeEmail({
+            gmail_remove_dots: false,
+            gmail_remove_subaddress: false,
+            all_lowercase: true,
+            gmail_convert_googlemaildotcom: false,
+        })
         .withMessage('Must be a valid email address'),
     body('password')
         .isLength({ min: 8 })
         .withMessage('Password must be at least 8 characters long')
-        .matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)
+        .matches(/^(?=.*[A-Za-z])(?=.*\d).*$/)
         .withMessage('Password must contain at least one letter and one number')
 ];
 
@@ -48,27 +53,34 @@ const isAdmin = async (req, res, next) => {
 
 // Register a new user
 router.post('/register', validateRegistration, async (req, res) => {
+    console.log('Received registration request with body:', req.body);
+    
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
     const { username, email, password } = req.body;
+    console.log('Extracted data:', { username, email, password: '***' });
 
     try {
         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
         if (checkResult.rows.length > 0) {
+            console.log('Email already exists:', email);
             return res.status(400).json({ error: "Email already exists" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully');
 
         const result = await db.query(
             'INSERT INTO users (username, email, password, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, email, is_admin',
             [username, email, hashedPassword, false]
         );
 
+        console.log('User registered successfully:', result.rows[0]);
         return res.status(201).json({ 
             message: 'Registration successful',
             user: result.rows[0] 

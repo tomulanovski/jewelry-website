@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth} from '../../contexts/AuthContext'
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Container,
   Box,
@@ -17,19 +17,30 @@ export const Register = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({}); // Change to object for field-specific errors
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrors({});
 
     try {
       await register(formData.username, formData.email, formData.password);
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      console.error('Registration error:', err);
+      
+      if (err.response?.data?.errors) {
+        // Convert array of errors to object keyed by field name
+        const fieldErrors = {};
+        err.response.data.errors.forEach(error => {
+          fieldErrors[error.path] = error.msg;
+        });
+        setErrors(fieldErrors);
+      } else {
+        setErrors({ general: err.response?.data?.error || 'Registration failed' });
+      }
     }
   };
 
@@ -47,11 +58,13 @@ export const Register = () => {
           <Typography component="h1" variant="h5" align="center">
             Create Account
           </Typography>
-          {error && (
+          
+          {errors.general && (
             <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
+              {errors.general}
             </Alert>
           )}
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <TextField
               margin="normal"
@@ -64,6 +77,8 @@ export const Register = () => {
               onChange={(e) =>
                 setFormData({ ...formData, username: e.target.value })
               }
+              error={!!errors.username}
+              helperText={errors.username}
             />
             <TextField
               margin="normal"
@@ -76,11 +91,13 @@ export const Register = () => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
+              error={!!errors.email}
+              helperText={errors.email}
             />
             <TextField
               margin="normal"
               required
-                fullWidth
+              fullWidth
               label="Password"
               type="password"
               name="password"
@@ -89,6 +106,8 @@ export const Register = () => {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
+              error={!!errors.password}
+              helperText={errors.password}
             />
             <Button
               type="submit"
