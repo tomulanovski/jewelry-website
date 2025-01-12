@@ -6,12 +6,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useCart } from '../contexts/CartContext';
 import ProductSearch from './ProductSearch';
+import { useAuth } from '../contexts/AuthContext';
 
 const NavBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { getTotalItems } = useCart();
   const [anchorEl, setAnchorEl] = useState(null);
+  const {isAuthenticated} = useAuth();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -28,6 +30,14 @@ const NavBar = () => {
 
   const handleShopClick = () => {
     navigate('/shop');
+  };
+
+  const handleAccountClick = () => {
+    if (isAuthenticated) {
+      navigate('/account');
+    } else {
+      navigate('/register');
+    }
   };
 
   return (
@@ -129,9 +139,12 @@ const NavBar = () => {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
-          <IconButton component={Link} to="/account" sx={{ color: theme.palette.text.primary }}>
-            <AccountCircleIcon />
-          </IconButton>
+          <IconButton 
+          onClick={handleAccountClick}
+          sx={{ color: theme.palette.text.primary }}
+        >
+          <AccountCircleIcon />
+        </IconButton>
         </Box>
       </Toolbar>
     </AppBar>

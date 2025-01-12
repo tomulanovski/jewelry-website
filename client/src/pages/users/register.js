@@ -8,7 +8,7 @@ import {
   TextField,
   Button,
   Alert,
-  Paper
+  Paper,
 } from '@mui/material';
 
 export const Register = () => {
@@ -17,29 +17,57 @@ export const Register = () => {
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState({}); // Change to object for field-specific errors
+  
+  const [errors, setErrors] = useState([]);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
+    setErrors([]);
+
+    // Basic frontend validation
+    if (formData.password.length < 8) {
+      setErrors(['Password must be at least 8 characters long']);
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      setErrors(['Please enter a valid email address']);
+      return;
+    }
 
     try {
       await register(formData.username, formData.email, formData.password);
       navigate('/login');
     } catch (err) {
-      console.error('Registration error:', err);
-      
-      if (err.response?.data?.errors) {
-        // Convert array of errors to object keyed by field name
-        const fieldErrors = {};
-        err.response.data.errors.forEach(error => {
-          fieldErrors[error.path] = error.msg;
+      // Handle validation errors from express-validator
+      if (err?.errors && Array.isArray(err.errors)) {
+        const formattedErrors = err.errors.map(error => {
+          // Format error messages to be more user-friendly
+          switch (error.path) {
+            case 'username':
+              return `Username: ${error.msg}`;
+            case 'email':
+              if (error.msg.includes('exists')) {
+                return '⚠️ This email is already registered. Please use a different email or sign in.';
+              }
+              return `Email: ${error.msg}`;
+            case 'password':
+              return `Password Requirements: ${error.msg}`;
+            default:
+              return error.msg;
+          }
         });
-        setErrors(fieldErrors);
-      } else {
-        setErrors({ general: err.response?.data?.error || 'Registration failed' });
+        setErrors(formattedErrors);
+      }
+      // Handle general error message
+      else if (err?.error) {
+        if (err.error.toLowerCase().includes('email')) {
+          setErrors(['⚠️ This email is already registered. Please use a different email or sign in.']);
+        } else {
+          setErrors([err.error]);
+        }
       }
     }
   };
@@ -59,10 +87,24 @@ export const Register = () => {
             Create Account
           </Typography>
           
-          {errors.general && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {errors.general}
-            </Alert>
+          {errors.length > 0 && (
+            <Box sx={{ mt: 2, mb: 2 }}>
+              {errors.map((error, index) => (
+                <Alert 
+                  key={index} 
+                  severity={error.includes('already registered') ? "warning" : "error"}
+                  sx={{ 
+                    mt: 1,
+                    '& .MuiAlert-message': {
+                      fontSize: '0.95rem',
+                      fontWeight: error.includes(':') ? 500 : 400
+                    }
+                  }}
+                >
+                  {error}
+                </Alert>
+              ))}
+            </Box>
           )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
@@ -74,11 +116,7 @@ export const Register = () => {
               name="username"
               autoComplete="username"
               value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-              error={!!errors.username}
-              helperText={errors.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
             <TextField
               margin="normal"
@@ -86,13 +124,10 @@ export const Register = () => {
               fullWidth
               label="Email Address"
               name="email"
+              type="email"
               autoComplete="email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              error={!!errors.email}
-              helperText={errors.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
             <TextField
               margin="normal"
@@ -103,11 +138,7 @@ export const Register = () => {
               name="password"
               autoComplete="new-password"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              error={!!errors.password}
-              helperText={errors.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
             <Button
               type="submit"
@@ -117,6 +148,20 @@ export const Register = () => {
             >
               Register
             </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Button
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Already have an account? Sign in
+              </Button>
+            </Box>
           </Box>
         </Paper>
       </Box>

@@ -14,7 +14,7 @@ const validateRegistration = [
         .trim()
         .isLength({ min: 3 })
         .withMessage('Username must be at least 3 characters long'),
-        body('email')
+    body('email')
         .isEmail()
         .normalizeEmail({
             gmail_remove_dots: false,

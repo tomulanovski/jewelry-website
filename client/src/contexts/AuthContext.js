@@ -1,4 +1,4 @@
-// src/context/AuthContext.js
+// src/contexts/AuthContext.js
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import axios from 'axios';
 
@@ -66,14 +66,11 @@ const authReducer = (state, action) => {
   }
 };
 
-// Create context
 const AuthContext = createContext(null);
 
-// Provider component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check authentication status when app loads
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -97,46 +94,44 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', { email, password });
+      const response = await axios.post('http://localhost:3000/auth/login', { 
+        email, 
+        password 
+      });
       dispatch({ 
         type: AUTH_ACTIONS.AUTH_SUCCESS, 
         payload: response.data.user 
       });
       return response.data;
     } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Login failed';
       dispatch({ 
         type: AUTH_ACTIONS.AUTH_FAILURE,
-        payload: error.response?.data?.error || 'Login failed'
+        payload: errorMessage
       });
-      throw error;
+      throw error.response?.data;
     }
   };
 
   const register = async (username, email, password) => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.post('http://localhost:3000/auth/register', 
-        {
-          username,
-          email,
-          password
-        },
+      const response = await axios.post(
+        'http://localhost:3000/auth/register', 
+        { username, email, password },
         {
           withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/json' }
         }
       );
+      dispatch({ type: AUTH_ACTIONS.AUTH_SUCCESS, payload: response.data.user });
       return response.data;
     } catch (error) {
-      dispatch({ 
-        type: AUTH_ACTIONS.AUTH_FAILURE,
-        payload: error.response?.data?.error || 'Registration failed'
-      });
-      throw error;
+      const errorMessage = error.response?.data?.error || 'Login failed';
+      dispatch({ type: AUTH_ACTIONS.AUTH_FAILURE, payload: errorMessage });
+      throw error.response?.data;
     }
-};
+  };
 
   const logout = async () => {
     try {
@@ -154,7 +149,6 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.RESET_ERROR });
   };
 
-  // Values to be provided to the entire app
   const value = {
     ...state,
     login,
@@ -170,7 +164,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -179,14 +172,11 @@ export const useAuth = () => {
   return context;
 };
 
-// Hook for protected routes
 export const useProtectedRoute = (requireAdmin = false) => {
   const { user, isAuthenticated, loading } = useAuth();
   
   if (loading) return true;
-  
   if (!isAuthenticated) return false;
-  
   if (requireAdmin && !user?.isAdmin) return false;
   
   return true;
