@@ -114,6 +114,20 @@ passport.use(new Strategy({
     }
 }));
 
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+  
+  passport.deserializeUser(async (id, done) => {
+    try {
+      const result = await db.query('SELECT id, username, email, is_admin FROM users WHERE id = $1', [id]);
+      const user = result.rows[0];
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
+  });
+
 // Login endpoint
 router.post('/login', (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
