@@ -1,4 +1,3 @@
-// auth.js
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import db from '../db.js';
