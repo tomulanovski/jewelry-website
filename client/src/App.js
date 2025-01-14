@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import { Login } from './pages/users/login';
 import { Register } from './pages/users/register';
-import { AdminDashboard } from './pages/users/admindashboard';
 import './App.css';
 import Cart from './pages/Cart';
 import Shop from './pages/Shop/Shop';
@@ -14,6 +13,10 @@ import { ProductProvider } from './contexts/ProductContext';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import OrderConfirmation from './pages/OrderConfirmation';
 import { AuthProvider } from './contexts/AuthContext';
+import { AdminRoute } from './components/AdminRoute';
+import { AdminDashboard } from './pages/users/admindashboard';
+import { AdminProducts } from './pages/Admin/AdminProducts';
+
 
 function App() {
   const paypalOptions = {
@@ -46,6 +49,10 @@ function App() {
             <Route path="/product/:id" element={<Product />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
+            <Route element={<AdminRoute />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/products" element={<AdminProducts />} />
+                </Route>
           </Routes>
         </CartProvider>
         </ProductProvider>

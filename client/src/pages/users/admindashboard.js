@@ -1,41 +1,23 @@
-import { useState, useEffect, useNavigate } from 'react';
-import { useAuth} from '../../contexts/AuthContext'
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'
 import {
   Container,
   Paper,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Alert,
   Box,
   AppBar,
   Toolbar,
-  Button
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  CardActions
 } from '@mui/material';
+import { Store as StoreIcon, People as PeopleIcon } from '@mui/icons-material';
 
 export const AdminDashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState('');
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/auth/admin/users');
-        setUsers(response.data);
-      } catch (err) {
-        setError('Failed to fetch users');
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -54,37 +36,59 @@ export const AdminDashboard = () => {
           </Button>
         </Toolbar>
       </AppBar>
+      
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h5" gutterBottom>
-            Users
-          </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.is_admin ? 'Admin' : 'User'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+        <Grid container spacing={3}>
+          {/* Products Management Card */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <StoreIcon sx={{ mr: 2 }} />
+                  <Typography variant="h6">
+                    Products Management
+                  </Typography>
+                </Box>
+                <Typography color="text.secondary">
+                  Add, edit, or remove products from your inventory
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button 
+                  size="small" 
+                  onClick={() => navigate('/admin/products')}
+                >
+                  Manage Products
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
+          {/* Users Overview Card */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <PeopleIcon sx={{ mr: 2 }} />
+                  <Typography variant="h6">
+                    Users Overview
+                  </Typography>
+                </Box>
+                <Typography color="text.secondary">
+                  View and manage user accounts
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button 
+                  size="small" 
+                  onClick={() => navigate('/admin/users')}
+                >
+                  View Users
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );
