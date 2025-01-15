@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import {
   TextField,
@@ -12,18 +12,22 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import { useProducts } from '../contexts/ProductContext';
 
-function ProductSearch() {
+function ProductSearch({ onProductSelect, adminStyle = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { products } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
+  const isAdminPage = location.pathname.startsWith('/admin');
+
   // Configure Fuse.js options
   const fuseOptions = {
-    keys: ['title', 'description'],
+    keys: ['title', 'description', 'materials'],
     threshold: 0.3,
     includeScore: true,
-    distance: 100
+    distance: 100,
+    minMatchCharLength: 2
   };
 
   const fuse = new Fuse(products, fuseOptions);
@@ -40,24 +44,79 @@ function ProductSearch() {
   }, [searchTerm, products]);
 
   const handleProductSelect = (product) => {
-    if (product) {
-      navigate(`/product/${product.id}`);
+    if (!product) return;
+
+    // If we're on admin page and have a select handler, use it
+    if (isAdminPage && onProductSelect) {
+      onProductSelect(product);
+      setSearchTerm('');
+      return;
     }
+
+    // Otherwise, navigate to the product page
+    navigate(`/product/${product.id}`);
+    setSearchTerm('');
   };
+
+  // Calculate styles based on whether we're in admin mode
+  const getStyles = () => ({
+    regularStyles: {
+      '& .MuiOutlinedInput-root': {
+        backgroundColor: adminStyle ? 'background.paper' : 'rgba(255, 255, 255, 0.1)',
+        '&:hover': {
+          backgroundColor: adminStyle ? 'background.default' : 'rgba(255, 255, 255, 0.15)',
+        },
+        '& fieldset': {
+          borderColor: adminStyle ? 'divider' : 'rgba(255, 255, 255, 0.23)',
+        },
+        '&:hover fieldset': {
+          borderColor: adminStyle ? 'primary.main' : 'rgba(255, 255, 255, 0.5)',
+        },
+      },
+      '& .MuiOutlinedInput-input': {
+        color: adminStyle ? 'text.primary' : 'white',
+        '&::placeholder': {
+          color: adminStyle ? 'text.secondary' : 'rgba(255, 255, 255, 0.7)',
+          opacity: 1,
+        },
+      },
+      '& .MuiAutocomplete-clearIndicator': {
+        color: adminStyle ? 'action.active' : 'rgba(255, 255, 255, 0.7)',
+      },
+    },
+    optionStyles: {
+      backgroundColor: adminStyle ? 'background.paper' : '#1a1a1a',
+      color: adminStyle ? 'text.primary' : 'white',
+      '&:hover': {
+        backgroundColor: adminStyle ? 'action.hover' : 'rgba(255, 255, 255, 0.05)',
+      },
+    },
+    paperStyles: {
+      backgroundColor: adminStyle ? 'background.paper' : '#1a1a1a',
+      border: '1px solid',
+      borderColor: adminStyle ? 'divider' : 'rgba(255, 255, 255, 0.12)',
+      '& .MuiAutocomplete-option': {
+        '&:hover': {
+          backgroundColor: adminStyle ? 'action.hover' : 'rgba(255, 255, 255, 0.05)',
+        },
+        '&[aria-selected="true"]': {
+          backgroundColor: adminStyle ? 'action.selected' : 'rgba(255, 255, 255, 0.1)',
+        },
+      },
+    }
+  });
+
+  const styles = getStyles();
 
   return (
     <Autocomplete
       freeSolo
       options={searchResults}
       getOptionLabel={(option) => option.title || ''}
-      onChange={(event, newValue) => {
-        if (newValue) {
-          handleProductSelect(newValue);
-        }
-      }}
-      onInputChange={(event, value) => {
-        setSearchTerm(value);
-      }}
+      value={null}
+      inputValue={searchTerm}
+      onChange={(event, newValue) => handleProductSelect(newValue)}
+      onInputChange={(event, value) => setSearchTerm(value)}
       sx={{
         width: { xs: '200px', sm: '300px' }
       }}
@@ -70,34 +129,13 @@ function ProductSearch() {
             ...params.InputProps,
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                <SearchIcon sx={{ 
+                  color: adminStyle ? 'action.active' : 'rgba(255, 255, 255, 0.7)' 
+                }} />
               </InputAdornment>
             )
           }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              },
-              '& fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.23)',
-              },
-              '&:hover fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.5)',
-              },
-            },
-            '& .MuiOutlinedInput-input': {
-              color: 'white',
-              '&::placeholder': {
-                color: 'rgba(255, 255, 255, 0.7)',
-                opacity: 1,
-              },
-            },
-            '& .MuiAutocomplete-clearIndicator': {
-              color: 'rgba(255, 255, 255, 0.7)',
-            },
-          }}
+          sx={styles.regularStyles}
         />
       )}
       renderOption={(props, option) => (
@@ -105,13 +143,7 @@ function ProductSearch() {
           component="li"
           {...props}
           elevation={0}
-          sx={{
-            backgroundColor: '#1a1a1a',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            }
-          }}
+          sx={styles.optionStyles}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
             {option.image1 && (
@@ -128,10 +160,15 @@ function ProductSearch() {
               />
             )}
             <Box>
-              <Typography variant="body1" sx={{ color: 'white' }}>
+              <Typography variant="body1">
                 {option.title}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: adminStyle ? 'text.secondary' : 'rgba(255, 255, 255, 0.7)' 
+                }}
+              >
                 ${option.price}
               </Typography>
             </Box>
@@ -139,21 +176,7 @@ function ProductSearch() {
         </Paper>
       )}
       PaperComponent={props => (
-        <Paper
-          {...props}
-          sx={{
-            backgroundColor: '#1a1a1a',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            '& .MuiAutocomplete-option': {
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              },
-              '&[aria-selected="true"]': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              }
-            }
-          }}
-        />
+        <Paper {...props} sx={styles.paperStyles} />
       )}
     />
   );

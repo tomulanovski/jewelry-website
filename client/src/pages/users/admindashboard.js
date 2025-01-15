@@ -14,9 +14,10 @@ import {
   CardActions
 } from '@mui/material';
 import { Store as StoreIcon, People as PeopleIcon } from '@mui/icons-material';
+import NavBar from '../../components/navbar';
 
 export const AdminDashboard = () => {
-  const { logout } = useAuth();
+  const {logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -26,17 +27,20 @@ export const AdminDashboard = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
-          </Typography>
-          <Button color="inherit" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
-      
+      <NavBar />
+             <Typography
+               align="center"
+               variant="h4"
+               component="h1"
+               sx={{
+                 color: 'rgb(var(--color_21))',
+                 textShadow: '2px 2px 5px rgba(0, 0, 0, 0.5)',
+                 letterSpacing: '2px',
+                 marginBottom: '20px',
+               }}
+             >
+               Hello Catherine!
+             </Typography>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Grid container spacing={3}>
           {/* Products Management Card */}

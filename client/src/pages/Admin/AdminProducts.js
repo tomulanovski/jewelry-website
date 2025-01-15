@@ -1,5 +1,4 @@
-// src/pages/admin/AdminProducts.jsx
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Container,
     Paper,
@@ -20,10 +19,12 @@ import {
     IconButton,
     Box,
     Alert,
-    CircularProgress
+    CircularProgress,
+    InputAdornment
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useProducts } from '../../contexts/ProductContext';
+import NavBar from '../../components/navbar';
 
 const TYPES = [
     { value: 0, label: 'Rings' },
@@ -39,7 +40,7 @@ const initialFormData = {
     quantity: '',
     materials: '',
     type: '',
-    imgs: ['']  // Start with one image URL field
+    imgs: ['']
 };
 
 export const AdminProducts = () => {
@@ -48,6 +49,24 @@ export const AdminProducts = () => {
     const [formData, setFormData] = useState(initialFormData);
     const [editingId, setEditingId] = useState(null);
     const [operationError, setOperationError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Filter products based on search term
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm) return products;
+        
+        const searchLower = searchTerm.toLowerCase();
+        return products.filter(product => {
+            return (
+                product.title?.toLowerCase().includes(searchLower) ||
+                product.description?.toLowerCase().includes(searchLower) ||
+                product.materials?.toLowerCase().includes(searchLower) ||
+                TYPES.find(type => type.value === product.type)?.label.toLowerCase().includes(searchLower) ||
+                product.price?.toString().includes(searchTerm) ||
+                product.quantity?.toString().includes(searchTerm)
+            );
+        });
+    }, [products, searchTerm]);
 
     const handleAddNew = () => {
         setFormData(initialFormData);
@@ -73,8 +92,8 @@ export const AdminProducts = () => {
                 product.image7,
                 product.image8,
                 product.image9,
-                product.image10,
-            ].filter(Boolean) // Remove null/undefined values
+                product.image10
+            ].filter(Boolean)
         });
         setEditingId(product.id);
         setOpenDialog(true);
@@ -92,31 +111,24 @@ export const AdminProducts = () => {
     };
 
     const handleSubmit = async (e) => {
-      e.preventDefault();
-      setOperationError('');
-      console.log('Starting form submission with data:', formData);
-  
-      try {
-          if (editingId) {
-              console.log('Updating existing product with ID:', editingId);
-              await updateProduct(editingId, formData);
-          } else {
-              console.log('Adding new product with data:', {
-                  ...formData,
-                  imgs: formData.imgs.filter(url => url !== '') // Log non-empty image URLs
-              });
-              await addProduct(formData);
-          }
-          console.log('Operation successful, refreshing products list');
-          await refreshProducts();
-          setOpenDialog(false);
-          setFormData(initialFormData);
-          setEditingId(null);
-      } catch (err) {
-          console.error('Frontend error:', err.response?.data || err);
-          setOperationError('Failed to save product');
-      }
-  };
+        e.preventDefault();
+        setOperationError('');
+
+        try {
+            if (editingId) {
+                await updateProduct(editingId, formData);
+            } else {
+                await addProduct(formData);
+            }
+            await refreshProducts();
+            setOpenDialog(false);
+            setFormData(initialFormData);
+            setEditingId(null);
+        } catch (err) {
+            console.error('Frontend error:', err.response?.data || err);
+            setOperationError('Failed to save product');
+        }
+    };
 
     const handleAddImage = () => {
         if (formData.imgs.length < 10) {
@@ -146,6 +158,7 @@ export const AdminProducts = () => {
     if (isLoading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <NavBar />
                 <CircularProgress />
             </Box>
         );
@@ -153,18 +166,32 @@ export const AdminProducts = () => {
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h4">Products Management</Typography>
-                <Button variant="contained" color="primary" onClick={handleAddNew}>
-                    Add New Product
-                </Button>
-            </Box>
+            <NavBar />
 
             {(error || operationError) && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error || operationError}
                 </Alert>
             )}
+<Box display="flex" alignItems="center" gap={2} mb={3}>
+    <TextField
+        sx={{ flex: 1 }}
+        variant="outlined"
+        placeholder="Search products by title, description, type, price..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+            startAdornment: (
+                <InputAdornment position="start">
+                    <SearchIcon />
+                </InputAdornment>
+            )
+        }}
+    />
+    <Button variant="contained" color="primary" onClick={handleAddNew}>
+        Add New Product
+    </Button>
+</Box>
 
             <TableContainer component={Paper}>
                 <Table>
@@ -178,7 +205,7 @@ export const AdminProducts = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {products.map((product) => (
+                        {filteredProducts.map((product) => (
                             <TableRow key={product.id}>
                                 <TableCell>{product.title}</TableCell>
                                 <TableCell>
@@ -196,6 +223,13 @@ export const AdminProducts = () => {
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {filteredProducts.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} align="center">
+                                    No products found
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -274,7 +308,7 @@ export const AdminProducts = () => {
                                     label={`Image URL ${index + 1}`}
                                     value={url}
                                     onChange={(e) => handleImageChange(index, e.target.value)}
-                                    required
+                                    required={index === 0}
                                 />
                                 {formData.imgs.length > 1 && (
                                     <Button 

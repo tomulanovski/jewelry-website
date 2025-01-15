@@ -154,14 +154,17 @@ router.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-// Get current user
 router.get('/me', isAuthenticated, (req, res) => {
-    res.json({
-        id: req.user.id,
-        username: req.user.username,
-        email: req.user.email,
-        isAdmin: req.user.is_admin
-    });
+    try {
+        res.json({
+            id: req.user.id,
+            username: req.user.username,
+            email: req.user.email,
+            isAdmin: req.user.is_admin
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch user data' });
+    }
 });
 
 // Logout

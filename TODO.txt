@@ -1,2 +1,2 @@
 - need to put all images in a cloud and change the urls in the data base
-- need to check admin products functionality(add and delet worked. picture didnt show for some reason) 
+- need to check admin products functionality(add and delete worked. picture didnt show for some reason) 

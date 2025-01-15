@@ -149,12 +149,18 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.RESET_ERROR });
   };
 
+  const getUserName = () => {
+    return state.user;
+  };
+
+
   const value = {
     ...state,
     login,
     logout,
     register,
-    resetError
+    resetError,
+    getUserName
   };
 
   return (

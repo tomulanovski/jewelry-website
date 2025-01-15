@@ -13,7 +13,7 @@ const NavBar = () => {
   const navigate = useNavigate();
   const { getTotalItems } = useCart();
   const [anchorEl, setAnchorEl] = useState(null);
-  const {isAuthenticated} = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -34,7 +34,12 @@ const NavBar = () => {
 
   const handleAccountClick = () => {
     if (isAuthenticated) {
-      navigate('/account');
+      // Check if user is admin and redirect accordingly
+      if (user?.isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/account');
+      }
     } else {
       navigate('/register');
     }
