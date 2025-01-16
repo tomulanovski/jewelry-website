@@ -49,14 +49,12 @@ function PaymentSection({total,subtotal, shipping, items, onSubmit, onBack, onEr
         items: items.map(item => ({
           title: item.title,
           price: item.price,
-          quantity: item.quantity
+          quantity: item.quantity,
+          sku: item.id.toString() // Make sure to pass the product_id as SKU
         })),
         shippingCost,
         total
       });
-  
-      console.log('Full PayPal response:', response.data); // Add this log
-      console.log('Order ID:', response.data.id);  // Add this log
       
       return response.data.id;
     } catch (err) {

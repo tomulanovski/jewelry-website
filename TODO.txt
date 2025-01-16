@@ -1,2 +1,2 @@
 - need to put all images in a cloud and change the urls in the data base
-- need to check admin products functionality(add and delete worked. picture didnt show for some reason) 
+- user is not attached to order even if signed in

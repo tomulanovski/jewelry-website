@@ -1,5 +1,6 @@
 import express from 'express';
 import axios from 'axios';
+import db from '../db.js';
 
 const router = express.Router();
 
@@ -123,12 +124,22 @@ router.post('/create-order', async (req, res) => {
     });
   }
 });
-// Capture payment
+
 router.post('/capture-payment/:orderId', async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const accessToken = await getPayPalAccessToken();
+    console.log('--------------------------------');
+    console.log('Starting payment capture process');
+    console.log('PayPal Order ID:', req.params.orderId);
 
+    const { orderId } = req.params;
+    
+    // Get PayPal access token
+    console.log('Getting PayPal access token...');
+    const accessToken = await getPayPalAccessToken();
+    console.log('Successfully got PayPal access token');
+
+    // Capture the payment
+    console.log('Capturing payment with PayPal...');
     const response = await axios.post(
       `${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`,
       {},
@@ -141,16 +152,92 @@ router.post('/capture-payment/:orderId', async (req, res) => {
     );
 
     const paymentDetails = response.data;
-    console.log('Payment captured:', orderId);
+    console.log('Full PayPal Response:', JSON.stringify(paymentDetails, null, 2));
+    
+    // Get the payment amount from the correct location
+    const purchaseUnit = paymentDetails.purchase_units[0];
+    const payments = purchaseUnit.payments.captures[0];
+    const amount = payments.amount.value;
+    const shippingInfo = purchaseUnit.shipping;
+    const payer = paymentDetails.payment_source.paypal;
 
-    // Here you would typically save to your database
-    // For now, we'll just return the PayPal response
+    console.log('Extracted Details:', {
+      amount,
+      shippingInfo,
+      payer
+    });
+
+    // Prepare order data
+    console.log('--------------------------------');
+    console.log('Preparing order data for database...');
+    
+    // Insert order into database
+    const orderResult = await db.query(
+      `INSERT INTO orders 
+        (user_id, guest_email, paypal_order_id, total_amount, status, shipping_address, customer_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        req.user?.id || null,
+        payer.email_address,
+        orderId,
+        amount,
+        'processing',
+        JSON.stringify(shippingInfo),
+        `${payer.name.given_name} ${payer.name.surname}`
+      ]
+    );
+
+    const savedOrder = orderResult.rows[0];
+    console.log('Order successfully saved to database:', savedOrder);
+
+    // Get items from PayPal order
+    console.log('--------------------------------');
+    console.log('Getting items from purchase unit...');
+    const items = purchaseUnit.items || [];
+    console.log('Items:', items);
+
+    // If there are items, save them to order_items
+    if (items && items.length > 0) {
+      const itemValues = items.map((item, index) => 
+        `($1, $${index * 3 + 2}, $${index * 3 + 3}, $${index * 3 + 4})`
+      ).join(', ');
+
+      const itemParams = [savedOrder.id];
+      items.forEach(item => {
+        itemParams.push(
+          item.sku,
+          parseInt(item.quantity),
+          parseFloat(item.unit_amount.value)
+        );
+      });
+
+      await db.query(
+        `INSERT INTO order_items 
+          (order_id, product_id, quantity, price_at_time)
+         VALUES ${itemValues}`,
+        itemParams
+      );
+      console.log('Order items successfully saved to database');
+    }
+
+    console.log('--------------------------------');
+    console.log('Payment capture process completed successfully');
+
     res.json({
       status: 'success',
+      orderId: savedOrder.id,
       details: paymentDetails
     });
+
   } catch (error) {
-    console.error('Capture Payment Error:', error.response?.data || error);
+    console.error('--------------------------------');
+    console.error('Payment Capture Error:');
+    console.error('Error message:', error.message);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Full error:', error);
+
     res.status(500).json({ 
       error: 'Failed to capture payment',
       details: process.env.NODE_ENV === 'development' ? error.response?.data : undefined
