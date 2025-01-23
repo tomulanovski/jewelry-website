@@ -1,2 +1,2 @@
 - need to put all images in a cloud and change the urls in the data base
-- user is not attached to order even if signed in
+- need to do automatic email send when the order is complete

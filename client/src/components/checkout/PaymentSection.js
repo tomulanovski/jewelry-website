@@ -9,14 +9,16 @@ import {
 } from '@mui/material';
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 axios.defaults.baseURL = 'http://localhost:3000';
+axios.defaults.withCredentials = true;
 
-function PaymentSection({total,subtotal, shipping, items, onSubmit, onBack, onError }) {
-
+function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubmit, onBack, onError }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [{ isPending, isRejected, isResolved }] = usePayPalScriptReducer();
+  const { isAuthenticated } = useAuth();
 
   if (isPending || !isResolved) {
     return (
@@ -50,10 +52,11 @@ function PaymentSection({total,subtotal, shipping, items, onSubmit, onBack, onEr
           title: item.title,
           price: item.price,
           quantity: item.quantity,
-          sku: item.id.toString() // Make sure to pass the product_id as SKU
+          sku: item.id.toString()
         })),
         shippingCost,
-        total
+        total,
+        shippingInfo
       });
       
       return response.data.id;
@@ -66,12 +69,24 @@ function PaymentSection({total,subtotal, shipping, items, onSubmit, onBack, onEr
   const onApprove = async (data) => {
     try {
       setIsProcessing(true);
-      const response = await axios.post(`/payment/capture-payment/${data.orderID}`);
+      const response = await axios.post(`/payment/capture-payment/${data.orderID}`, {
+        items: items,
+        shippingInfo: {
+          address: shippingInfo.address,
+          apartment: shippingInfo.apartment,
+          city: shippingInfo.city,
+          country: shippingInfo.country,
+          postalCode: shippingInfo.postalCode,
+          fullName: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+          email: shippingInfo.email,
+          phone: shippingInfo.phone
+        }
+      });
       
       onSubmit({
         method: 'paypal',
         details: {
-          orderId: data.orderID  // This is the PayPal order ID we need
+          orderId: data.orderID
         }
       });
     } catch (err) {
