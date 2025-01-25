@@ -1,6 +1,7 @@
 // src/contexts/ProductContext.js
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import api from '../services/api'
 
 const ProductContext = createContext(null);
 
@@ -55,7 +56,8 @@ function ProductProvider({ children }) {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/shop');
+            // const response = await axios.get('http://localhost:3000/shop');
+            const response = await api.get('/shop'); 
             dispatch({ type: 'SET_PRODUCTS', payload: response.data });
         } catch (error) {
             dispatch({ type: 'SET_ERROR', payload: 'Failed to load products' });
@@ -84,7 +86,8 @@ function ProductProvider({ children }) {
             };
             console.log('ProductContext: Sending POST request with data:', dataToSend);
             
-            const response = await axios.post('http://localhost:3000/product', dataToSend);
+            // const response = await axios.post('http://localhost:3000/product', dataToSend);
+            const response = await api.post('/product', dataToSend);
             console.log('ProductContext: Received response:', response.data);
             
             dispatch({ type: 'ADD_PRODUCT', payload: response.data });
@@ -108,7 +111,8 @@ function ProductProvider({ children }) {
                 imgs: Array.isArray(productData.imgs) ? productData.imgs : [productData.imgs]
             };
 
-            const response = await axios.put(`http://localhost:3000/product/${productId}`, dataToSend);
+            // const response = await axios.put(`http://localhost:3000/product/${productId}`, dataToSend);
+            const response = await api.put(`/product/${productId}`, dataToSend);
             dispatch({ type: 'UPDATE_PRODUCT', payload: response.data });
             return response.data;
         } catch (error) {
@@ -119,7 +123,8 @@ function ProductProvider({ children }) {
 
     const deleteProduct = async (productId) => {
         try {
-            await axios.delete(`http://localhost:3000/product/${productId}`);
+            // await axios.delete(`http://localhost:3000/product/${productId}`);
+            await api.delete(`/product/${productId}`);
             dispatch({ type: 'DELETE_PRODUCT', payload: productId });
         } catch (error) {
             dispatch({ type: 'SET_ERROR', payload: 'Failed to delete product' });

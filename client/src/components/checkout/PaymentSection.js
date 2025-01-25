@@ -10,9 +10,10 @@ import {
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
-axios.defaults.baseURL = 'http://localhost:3000';
-axios.defaults.withCredentials = true;
+// axios.defaults.baseURL = 'http://localhost:3000';
+// axios.defaults.withCredentials = true;
 
 function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubmit, onBack, onError }) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -47,7 +48,18 @@ function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubm
     try {
       const shippingCost = shipping === 'express' ? 40 : 0;
       
-      const response = await axios.post('/payment/create-order', {
+      // const response = await axios.post('/payment/create-order', {
+      //   items: items.map(item => ({
+      //     title: item.title,
+      //     price: item.price,
+      //     quantity: item.quantity,
+      //     sku: item.id.toString()
+      //   })),
+      //   shippingCost,
+      //   total,
+      //   shippingInfo
+      // });
+      const response = await api.post('/payment/create-order', {
         items: items.map(item => ({
           title: item.title,
           price: item.price,
@@ -59,6 +71,7 @@ function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubm
         shippingInfo
       });
       
+      
       return response.data.id;
     } catch (err) {
       console.error('Full error:', err);
@@ -69,7 +82,20 @@ function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubm
   const onApprove = async (data) => {
     try {
       setIsProcessing(true);
-      const response = await axios.post(`/payment/capture-payment/${data.orderID}`, {
+      // const response = await axios.post(`/payment/capture-payment/${data.orderID}`, {
+      //   items: items,
+      //   shippingInfo: {
+      //     address: shippingInfo.address,
+      //     apartment: shippingInfo.apartment,
+      //     city: shippingInfo.city,
+      //     country: shippingInfo.country,
+      //     postalCode: shippingInfo.postalCode,
+      //     fullName: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+      //     email: shippingInfo.email,
+      //     phone: shippingInfo.phone
+      //   }
+      // });
+      const response = await api.post(`/payment/capture-payment/${data.orderID}`, {
         items: items,
         shippingInfo: {
           address: shippingInfo.address,

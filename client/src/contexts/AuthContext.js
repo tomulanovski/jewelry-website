@@ -1,6 +1,7 @@
 // src/contexts/AuthContext.js
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 import axios from 'axios';
+import api from '../services/api'
 
 // Action Types
 const AUTH_ACTIONS = {
@@ -78,7 +79,8 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.get('http://localhost:3000/auth/me');
+      // const response = await axios.get('http://localhost:3000/auth/me');
+      const response = await api.get('/auth/me');
       dispatch({ 
         type: AUTH_ACTIONS.AUTH_SUCCESS, 
         payload: response.data 
@@ -94,7 +96,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', { 
+      // const response = await axios.post('http://localhost:3000/auth/login', { 
+      //   email, 
+      //   password 
+      // });
+      const response = await api.post('/auth/login', { 
         email, 
         password 
       });
@@ -116,8 +122,16 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     dispatch({ type: AUTH_ACTIONS.AUTH_START });
     try {
-      const response = await axios.post(
-        'http://localhost:3000/auth/register', 
+      // const response = await axios.post(
+      //   'http://localhost:3000/auth/register', 
+      //   { username, email, password },
+      //   {
+      //     withCredentials: true,
+      //     headers: { 'Content-Type': 'application/json' }
+      //   }
+      // );
+      const response = await api.post(
+        '/auth/register', 
         { username, email, password },
         {
           withCredentials: true,
@@ -135,7 +149,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('http://localhost:3000/auth/logout');
+      // await axios.post('http://localhost:3000/auth/logout');
+      await api.post('/auth/logout');
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     } catch (error) {
       dispatch({ 

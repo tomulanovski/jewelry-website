@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import NavBar from '../components/navbar';
 import axios from 'axios';
+import api from '../services/api';
 
 function OrderConfirmation() {
     const { id } = useParams();
@@ -29,7 +30,10 @@ function OrderConfirmation() {
 
     const handleResendEmail = async () => {
         try {
-            await axios.post(`/api/orders/${id}/resend-email`, {
+            // await axios.post(`/api/orders/${id}/resend-email`, {
+            //     orderDetails: orderDetails
+            // });
+            await api.post(`/orders/${id}/resend-email`, {
                 orderDetails: orderDetails
             });
             setEmailSent(true);
