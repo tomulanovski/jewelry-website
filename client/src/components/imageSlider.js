@@ -1,10 +1,17 @@
 import React from 'react';
 import Carousel from 'react-material-ui-carousel';
-import { Paper, Box } from '@mui/material';
+import { Paper, Box, useTheme, useMediaQuery } from '@mui/material';
 
 function ImageCarousel({ items, width = '100%' }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
-    <Box sx={{ width: width, margin: 'auto' }}>
+    <Box sx={{ 
+      width: isMobile ? '95%' : width, // Wider on mobile
+      margin: 'auto',
+      mt: isMobile ? 2 : 0 // Add some top margin on mobile
+    }}>
       <Carousel
         animation="fade"
         duration={800}
@@ -14,14 +21,14 @@ function ImageCarousel({ items, width = '100%' }) {
         swipe
       >
         {items.map((item, index) => (
-          <CarouselItem key={index} item={item} />
+          <CarouselItem key={index} item={item} isMobile={isMobile} />
         ))}
       </Carousel>
     </Box>
   );
 }
 
-const CarouselItem = ({ item }) => (
+const CarouselItem = ({ item, isMobile }) => (
   <Paper elevation={3} sx={{ position: 'relative', borderRadius: 4, overflow: 'hidden' }}>
     <Box
       component="div"
@@ -29,7 +36,7 @@ const CarouselItem = ({ item }) => (
         width: '100%',
         height: '100%',
         position: 'relative',
-        aspectRatio: '16/9',
+        aspectRatio: isMobile ? '4/3' : '16/9', // Taller aspect ratio on mobile
       }}
     >
       <Box

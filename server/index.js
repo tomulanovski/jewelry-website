@@ -18,7 +18,12 @@ const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // the frontend port
+  origin: [
+    process.env.FRONTEND_URL,
+    'http://localhost:3001',
+    'http://10.100.102.6:3001',
+    'http://10.100.102.6:3001/'
+   ],// the frontend port
   credentials: true
 }));
 
@@ -61,6 +66,6 @@ app.get('/products', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

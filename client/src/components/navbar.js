@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem, Badge } from '@mui/material';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  IconButton, 
+  Box, 
+  Button, 
+  Menu, 
+  MenuItem, 
+  Badge,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  useMediaQuery
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,29 +28,42 @@ const NavBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { getTotalItems } = useCart();
-  const [anchorEl, setAnchorEl] = useState(null);
   const { isAuthenticated, user } = useAuth();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+    if (!isMobile) {
+      setAnchorEl(event.currentTarget);
+    }
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   const handleMenuItemClick = (category) => {
     navigate(`/shop/${category.toLowerCase()}`);
     handleMenuClose();
+    setMobileMenuOpen(false);
   };
 
   const handleShopClick = () => {
-    navigate('/shop');
+    if (isMobile) {
+      setMobileMenuOpen(true);
+    } else {
+      navigate('/shop');
+    }
   };
 
   const handleAccountClick = () => {
     if (isAuthenticated) {
-      // Check if user is admin and redirect accordingly
       if (user?.isAdmin) {
         navigate('/admin');
       } else {
@@ -43,7 +72,49 @@ const NavBar = () => {
     } else {
       navigate('/register');
     }
+    setMobileMenuOpen(false);
   };
+
+  const mobileMenu = (
+    <Drawer
+      anchor="right"
+      open={mobileMenuOpen}
+      onClose={handleMobileMenuToggle}
+      sx={{
+        '& .MuiDrawer-paper': {
+          backgroundColor: theme.palette.background.default,
+          width: '250px',
+        },
+      }}
+    >
+      <List>
+        <ListItem button component={Link} to="/" onClick={() => setMobileMenuOpen(false)}>
+          <ListItemText primary="Home" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('')}>
+          <ListItemText primary="Shop All" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('Earrings')}>
+          <ListItemText primary="Earrings" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('Rings')}>
+          <ListItemText primary="Rings" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('Necklaces')}>
+          <ListItemText primary="Necklaces" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('Bracelets')}>
+          <ListItemText primary="Bracelets" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button onClick={() => handleMenuItemClick('Engagements')}>
+          <ListItemText primary="Engagements" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+        <ListItem button component={Link} to="/about" onClick={() => setMobileMenuOpen(false)}>
+          <ListItemText primary="About" sx={{ color: theme.palette.text.primary }} />
+        </ListItem>
+      </List>
+    </Drawer>
+  );
 
   return (
     <AppBar position="static" sx={{ backgroundColor: theme.palette.background.default }}>
@@ -51,85 +122,68 @@ const NavBar = () => {
         {/* Logo/Brand */}
         <Typography
           variant="h6"
-          sx={{ color: theme.palette.text.primary }}
+          sx={{ 
+            color: theme.palette.text.primary,
+            flexGrow: isMobile ? 1 : 0 
+          }}
         >
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>My Jewelry Store</Link>
+          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+            My Jewelry Store
+          </Link>
         </Typography>
 
-        {/* Search Bar */}
-        <Box sx={{ 
-          position: 'absolute', 
-          left: '50%', 
-          transform: 'translateX(-50%)',
-          width: '300px'
-        }}>
-          <ProductSearch />
-        </Box>
+        {/* Search Bar - Hidden on mobile */}
+        {!isMobile && (
+          <Box sx={{ 
+            width: '300px',
+            mx: 2,
+            flexGrow: 1,
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <ProductSearch />
+          </Box>
+        )}
 
         {/* Navigation Links and Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button 
-            color="inherit" 
-            sx={{ color: theme.palette.text.primary, '&:hover': { backgroundColor: '#333' } }} 
-            component={Link} 
-            to="/"
-          >
-            Home
-          </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {!isMobile ? (
+            <>
+              <Button 
+                color="inherit" 
+                sx={{ color: theme.palette.text.primary }} 
+                component={Link} 
+                to="/"
+              >
+                Home
+              </Button>
 
-          <Button
-            color="inherit"
-            sx={{ color: theme.palette.text.primary }}
-            onClick={handleShopClick}
-            onMouseEnter={handleMenuOpen}
-            aria-controls={anchorEl ? 'shop-menu' : undefined}
-            aria-haspopup="true"
-          >
-            Shop
-          </Button>
+              <Button
+                color="inherit"
+                sx={{ color: theme.palette.text.primary }}
+                onClick={handleShopClick}
+                onMouseEnter={handleMenuOpen}
+                aria-controls={anchorEl ? 'shop-menu' : undefined}
+                aria-haspopup="true"
+              >
+                Shop
+              </Button>
 
-          <Menu
-            sx={{
-              '& .MuiPaper-root': {
-                backgroundColor: '#000',
-              },
-            }}
-            id="shop-menu"
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            MenuListProps={{
-              onMouseLeave: handleMenuClose,
-            }}
-          >
-            <MenuItem onClick={() => handleMenuItemClick('')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Full collection
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('Earrings')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Earrings
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('Rings')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Rings
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('Necklaces')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Necklaces
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('Bracelets')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Bracelets
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('Engagements')} sx={{ '&:hover': { backgroundColor: '#333' } }}>
-              Engagements
-            </MenuItem>
-          </Menu>
-
-          <Button 
-            color="inherit" 
-            sx={{ color: theme.palette.text.primary, '&:hover': { backgroundColor: '#333' } }} 
-            component={Link} 
-            to="/about"
-          >
-            About
-          </Button>
+              <Button 
+                color="inherit" 
+                sx={{ color: theme.palette.text.primary }} 
+                component={Link} 
+                to="/about"
+              >
+                About
+              </Button>
+            </>
+          ) : (
+            // Search bar for mobile 
+            <Box sx={{ mr: 1, flexGrow: 1 }}>
+              <ProductSearch />
+            </Box>
+          )}
 
           <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
             <Badge 
@@ -144,13 +198,64 @@ const NavBar = () => {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
+          
           <IconButton 
-          onClick={handleAccountClick}
-          sx={{ color: theme.palette.text.primary }}
-        >
-          <AccountCircleIcon />
-        </IconButton>
+            onClick={handleAccountClick}
+            sx={{ color: theme.palette.text.primary }}
+          >
+            <AccountCircleIcon />
+          </IconButton>
+
+          {isMobile && (
+            <IconButton
+              edge="end"
+              color="inherit"
+              aria-label="menu"
+              onClick={handleMobileMenuToggle}
+              sx={{ color: theme.palette.text.primary }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
         </Box>
+
+        {/* Desktop Shop Menu */}
+        <Menu
+          sx={{
+            '& .MuiPaper-root': {
+              backgroundColor: theme.palette.background.default,
+            },
+          }}
+          id="shop-menu"
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            onMouseLeave: handleMenuClose,
+          }}
+        >
+          <MenuItem onClick={() => handleMenuItemClick('')}>
+            Full collection
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuItemClick('Earrings')}>
+            Earrings
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuItemClick('Rings')}>
+            Rings
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuItemClick('Necklaces')}>
+            Necklaces
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuItemClick('Bracelets')}>
+            Bracelets
+          </MenuItem>
+          <MenuItem onClick={() => handleMenuItemClick('Engagements')}>
+            Engagements
+          </MenuItem>
+        </Menu>
+
+        {/* Mobile Menu Drawer */}
+        {mobileMenu}
       </Toolbar>
     </AppBar>
   );
