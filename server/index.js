@@ -31,11 +31,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET, // need to have a real secret in env
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 24H session 
+    maxAge: 24 * 60 * 60 * 1000, // 24H session
+    httpOnly: true,
+    secure: false,  // set to true if using HTTPS
+    sameSite: 'lax'  
   }
 }));
 

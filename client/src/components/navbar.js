@@ -117,22 +117,42 @@ const NavBar = () => {
   );
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: theme.palette.background.default }}>
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+    <AppBar 
+      position="static" 
+      sx={{ 
+        backgroundColor: theme.palette.background.default,
+        width: '100%',
+        maxWidth: '100%',
+      }}
+    >
+      <Toolbar 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          p: { xs: 1, sm: 2 },
+          minHeight: { xs: '56px' },
+          width: '100%',
+          gap: 1,
+          '& > *': {
+            flexShrink: 0
+          }
+        }}
+      >
         {/* Logo/Brand */}
         <Typography
           variant="h6"
           sx={{ 
             color: theme.palette.text.primary,
-            flexGrow: isMobile ? 1 : 0 
+            fontSize: { xs: '1.1rem', sm: '1.25rem' },
+            marginRight: { xs: 1, sm: 2 }
           }}
         >
           <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-            My Jewelry Store
+            CUBijoux
           </Link>
         </Typography>
 
-        {/* Search Bar - Hidden on mobile */}
+        {/* Desktop Search Bar */}
         {!isMobile && (
           <Box sx={{ 
             width: '300px',
@@ -146,78 +166,137 @@ const NavBar = () => {
         )}
 
         {/* Navigation Links and Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {!isMobile ? (
-            <>
-              <Button 
-                color="inherit" 
-                sx={{ color: theme.palette.text.primary }} 
-                component={Link} 
-                to="/"
-              >
-                Home
-              </Button>
-
-              <Button
-                color="inherit"
-                sx={{ color: theme.palette.text.primary }}
-                onClick={handleShopClick}
-                onMouseEnter={handleMenuOpen}
-                aria-controls={anchorEl ? 'shop-menu' : undefined}
-                aria-haspopup="true"
-              >
-                Shop
-              </Button>
-
-              <Button 
-                color="inherit" 
-                sx={{ color: theme.palette.text.primary }} 
-                component={Link} 
-                to="/about"
-              >
-                About
-              </Button>
-            </>
-          ) : (
-            // Search bar for mobile 
-            <Box sx={{ mr: 1, flexGrow: 1 }}>
+        {isMobile ? (
+          <Box sx={{ 
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            ml: 'auto'
+          }}>
+            {/* Search Container */}
+            <Box sx={{ 
+              width: '180px',
+              position: 'relative',
+              zIndex: 2,
+              mr: 1
+            }}>
               <ProductSearch />
             </Box>
-          )}
 
-          <IconButton component={Link} to="/cart" sx={{ color: theme.palette.text.primary }}>
-            <Badge 
-              badgeContent={getTotalItems()} 
-              sx={{
-                '& .MuiBadge-badge': {
-                  backgroundColor: theme.palette.text.primary,
-                  color: 'black'
-                }
-              }}
+            {/* Icons Container */}
+            <Box sx={{
+              display: 'flex',
+              gap: 0.5,
+              alignItems: 'center',
+              zIndex: 1
+            }}>
+              <IconButton 
+                component={Link} 
+                to="/cart" 
+                sx={{ 
+                  color: theme.palette.text.primary,
+                  padding: '6px'
+                }}
+              >
+                <Badge 
+                  badgeContent={getTotalItems()} 
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      backgroundColor: theme.palette.text.primary,
+                      color: 'black',
+                      fontSize: '0.7rem'
+                    }
+                  }}
+                >
+                  <ShoppingCartIcon sx={{ fontSize: '1.2rem' }} />
+                </Badge>
+              </IconButton>
+              
+              <IconButton 
+                onClick={handleAccountClick}
+                sx={{ 
+                  color: theme.palette.text.primary,
+                  padding: '6px'
+                }}
+              >
+                <AccountCircleIcon sx={{ fontSize: '1.2rem' }} />
+              </IconButton>
+
+              <IconButton
+                edge="end"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleMobileMenuToggle}
+                sx={{ 
+                  color: theme.palette.text.primary,
+                  padding: '6px'
+                }}
+              >
+                <MenuIcon sx={{ fontSize: '1.2rem' }} />
+              </IconButton>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <Button 
+              color="inherit" 
+              sx={{ color: theme.palette.text.primary }} 
+              component={Link} 
+              to="/"
             >
-              <ShoppingCartIcon />
-            </Badge>
-          </IconButton>
-          
-          <IconButton 
-            onClick={handleAccountClick}
-            sx={{ color: theme.palette.text.primary }}
-          >
-            <AccountCircleIcon />
-          </IconButton>
+              Home
+            </Button>
 
-          {isMobile && (
-            <IconButton
-              edge="end"
+            <Button
               color="inherit"
-              aria-label="menu"
-              onClick={handleMobileMenuToggle}
+              sx={{ color: theme.palette.text.primary }}
+              onClick={handleShopClick}
+              onMouseEnter={handleMenuOpen}
+              aria-controls={anchorEl ? 'shop-menu' : undefined}
+              aria-haspopup="true"
+            >
+              Shop
+            </Button>
+
+            <Button 
+              color="inherit" 
+              sx={{ color: theme.palette.text.primary }} 
+              component={Link} 
+              to="/about"
+            >
+              About
+            </Button>
+
+            <IconButton 
+              component={Link} 
+              to="/cart" 
               sx={{ color: theme.palette.text.primary }}
             >
-              <MenuIcon />
+              <Badge 
+                badgeContent={getTotalItems()} 
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: theme.palette.text.primary,
+                    color: 'black'
+                  }
+                }}
+              >
+                <ShoppingCartIcon />
+              </Badge>
             </IconButton>
-          )}
-        </Box>
+
+            <IconButton 
+              onClick={handleAccountClick}
+              sx={{ color: theme.palette.text.primary }}
+            >
+              <AccountCircleIcon />
+            </IconButton>
+          </Box>
+        )}
 
         {/* Desktop Shop Menu */}
         <Menu

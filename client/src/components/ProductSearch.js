@@ -21,7 +21,6 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
 
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Configure Fuse.js options
   const fuseOptions = {
     keys: ['title', 'description', 'materials'],
     threshold: 0.3,
@@ -32,7 +31,6 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
 
   const fuse = new Fuse(products, fuseOptions);
 
-  // Update search results when searchTerm changes
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -46,19 +44,16 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
   const handleProductSelect = (product) => {
     if (!product) return;
 
-    // If we're on admin page and have a select handler, use it
     if (isAdminPage && onProductSelect) {
       onProductSelect(product);
       setSearchTerm('');
       return;
     }
 
-    // Otherwise, navigate to the product page
     navigate(`/product/${product.id}`);
     setSearchTerm('');
   };
 
-  // Calculate styles based on whether we're in admin mode
   const getStyles = () => ({
     regularStyles: {
       '& .MuiOutlinedInput-root': {
@@ -118,7 +113,16 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
       onChange={(event, newValue) => handleProductSelect(newValue)}
       onInputChange={(event, value) => setSearchTerm(value)}
       sx={{
-        width: { xs: '200px', sm: '300px' }
+        width: '100%',
+        '& .MuiAutocomplete-popper': {
+          zIndex: 1400
+        }
+      }}
+      PopperProps={{
+        style: { 
+          zIndex: 1400,
+          position: 'absolute'
+        }
       }}
       renderInput={(params) => (
         <TextField

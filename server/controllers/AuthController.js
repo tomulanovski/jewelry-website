@@ -65,7 +65,12 @@ router.post('/register', validateRegistration, async (req, res) => {
     console.log('Extracted data:', { username, email, password: '***' });
 
     try {
-        const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+
+        const normalizedEmail = email.toLowerCase();
+        const checkResult = await db.query(
+            "SELECT * FROM users WHERE LOWER(email) = LOWER($1)", 
+            [normalizedEmail]
+        );
         if (checkResult.rows.length > 0) {
             console.log('Email already exists:', email);
             return res.status(400).json({ error: "Email already exists" });
@@ -76,7 +81,7 @@ router.post('/register', validateRegistration, async (req, res) => {
 
         const result = await db.query(
             'INSERT INTO users (username, email, password, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, email, is_admin',
-            [username, email, hashedPassword, false]
+            [username, normalizedEmail, hashedPassword, false]
         );
 
         console.log('User registered successfully:', result.rows[0]);
@@ -96,7 +101,13 @@ passport.use(new Strategy({
     passwordField: 'password'
 }, async (email, password, done) => {
     try {
-        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+
+        const normalizedEmail = email.toLowerCase();
+
+        const result = await db.query(
+            'SELECT * FROM users WHERE LOWER(email) = LOWER($1)', 
+            [normalizedEmail]
+        );
         const user = result.rows[0];
 
         if (!user) {
