@@ -16,14 +16,14 @@ dotenv.config(); // Load environment variables from .env file
 const app = express();
 const PORT = process.env.PORT;
 
-// Middleware
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
     'http://localhost:3001',
     'http://10.100.102.6:3001',
-    'http://10.100.102.6:3001/'
-   ],// the frontend port
+    'http://10.100.102.6:3001/',
+    'https://catherineulanovski.com' // custom domain
+  ],
   credentials: true
 }));
 
