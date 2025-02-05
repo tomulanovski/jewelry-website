@@ -15,7 +15,7 @@ import axios from 'axios';
 //     }
 // });
 const api = axios.create({
-    baseURL: process.env.REACT_ENV === 'production' 
+    baseURL: process.env.NODE_ENV === 'production' 
         ? process.env.REACT_APP_API_URL 
         : 'http://10.100.102.6:3000',
     withCredentials: true,
