@@ -5,6 +5,7 @@ const api = axios.create({
         ? process.env.REACT_APP_API_URL 
         : 'http://localhost:3000',
     withCredentials: true,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json'
     }
