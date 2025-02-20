@@ -8,7 +8,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const db = new pg.Client(
     isProduction 
     ? {
-        connectionString: process.env.DATABASE_URL,
+        connectionString: process.env.DB_URL,
         ssl: {
             rejectUnauthorized: false
         }
