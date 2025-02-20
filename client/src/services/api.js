@@ -1,23 +1,9 @@
 import axios from 'axios';
 
-// const api = axios.create({
-//   baseURL: process.env.REACT_APP_API_URL, // URL of  backend
-//   withCredentials: true,
-// });
-
-// export default api;
-
-// const api = axios.create({
-//     baseURL: process.env.REACT_APP_API_URL,
-//     withCredentials: true,
-//     headers: {
-//         'Content-Type': 'application/json'
-//     }
-// });
 const api = axios.create({
     baseURL: process.env.NODE_ENV === 'production' 
         ? process.env.REACT_APP_API_URL 
-        : 'http://10.100.102.6:3000',
+        : 'http://localhost:3000',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json'
