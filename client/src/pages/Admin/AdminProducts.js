@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import ImageUploader from '../../components/ImageUploader';
 import {
     Container,
     Paper,
@@ -302,24 +303,14 @@ export const AdminProducts = () => {
                         
                         {/* Image URLs */}
                         {formData.imgs.map((url, index) => (
-                            <Box key={index} sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                <TextField
-                                    fullWidth
-                                    label={`Image URL ${index + 1}`}
+                                <ImageUploader
+                                    key={index}
                                     value={url}
-                                    onChange={(e) => handleImageChange(index, e.target.value)}
-                                    required={index === 0}
+                                    index={index}
+                                    onChange={handleImageChange}
+                                    onRemove={handleRemoveImage}
                                 />
-                                {formData.imgs.length > 1 && (
-                                    <Button 
-                                        color="error" 
-                                        onClick={() => handleRemoveImage(index)}
-                                    >
-                                        Remove
-                                    </Button>
-                                )}
-                            </Box>
-                        ))}
+                            ))}
                         
                         {formData.imgs.length < 10 && (
                             <Button 

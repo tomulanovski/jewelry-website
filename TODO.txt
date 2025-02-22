@@ -3,3 +3,4 @@
 - need to import data base to render
 - need to make enviroment suitable for developenet and production
 - need to make suitable for all screen sizes
+- need to mke paypal billing address for international and not just US

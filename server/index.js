@@ -10,6 +10,7 @@ import orderRoutes from './controllers/OrderController.js';
 import shopRoutes from './controllers/ShopController.js';
 import productRoutes from './controllers/ProductController.js'
 import paymentRoutes from './controllers/PaymentRoutes.js'
+import imageRoutes from './controllers/ImageController.js';
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -52,6 +53,7 @@ app.use('/orders', orderRoutes);
 app.use('/shop', shopRoutes);
 app.use('/product',productRoutes);
 app.use('/payment',paymentRoutes);
+app.use('/images', imageRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
