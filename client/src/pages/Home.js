@@ -3,7 +3,7 @@ import ImageCarousel from "../components/imageSlider";
 import { Button, Box, useMediaQuery } from "@mui/material";
 import NavBar from "../components/navbar";
 import { useTheme } from '@mui/material/styles';
-
+import {useNavigate } from 'react-router-dom';
 const carouselItems = [
   {
     image: 'carousel_images/gold_bracelt.jpg',
@@ -22,6 +22,7 @@ const carouselItems = [
 function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
   return (
     <Box>
@@ -51,7 +52,7 @@ function Home() {
               border: 1,
               width: isMobile ? '100%' : 'auto'
             }}
-            href="/shop"
+            onClick={() => navigate('/shop')}
           >
             Shop
           </Button>
