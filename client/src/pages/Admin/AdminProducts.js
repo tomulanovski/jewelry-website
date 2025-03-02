@@ -26,6 +26,7 @@ import {
 import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useProducts } from '../../contexts/ProductContext';
 import NavBar from '../../components/navbar';
+import api from '../../services/api';
 
 const TYPES = [
     { value: 0, label: 'Rings' },
@@ -51,6 +52,9 @@ export const AdminProducts = () => {
     const [editingId, setEditingId] = useState(null);
     const [operationError, setOperationError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [pendingUploads, setPendingUploads] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+    const [imagesToDelete, setImagesToDelete] = useState([]);
 
     // Filter products based on search term
     const filteredProducts = useMemo(() => {
@@ -72,10 +76,26 @@ export const AdminProducts = () => {
     const handleAddNew = () => {
         setFormData(initialFormData);
         setEditingId(null);
+        setPendingUploads({});
+        setImagesToDelete([]);
         setOpenDialog(true);
     };
 
     const handleEdit = (product) => {
+        // Collect all image URLs for tracking changes
+        const currentImages = [
+            product.image1,
+            product.image2,
+            product.image3,
+            product.image4,
+            product.image5,
+            product.image6,
+            product.image7,
+            product.image8,
+            product.image9,
+            product.image10
+        ].filter(Boolean);
+
         setFormData({
             title: product.title,
             description: product.description,
@@ -83,20 +103,12 @@ export const AdminProducts = () => {
             quantity: product.quantity,
             materials: product.materials,
             type: product.type,
-            imgs: [
-                product.image1,
-                product.image2,
-                product.image3,
-                product.image4,
-                product.image5,
-                product.image6,
-                product.image7,
-                product.image8,
-                product.image9,
-                product.image10
-            ].filter(Boolean)
+            imgs: currentImages.length > 0 ? currentImages : ['']
         });
+        
         setEditingId(product.id);
+        setPendingUploads({});
+        setImagesToDelete([]);
         setOpenDialog(true);
     };
 
@@ -104,30 +116,115 @@ export const AdminProducts = () => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
 
         try {
-            await deleteProduct(id);
+            // Find the product to get its images
+            const productToDelete = products.find(p => p.id === id);
+            if (productToDelete) {
+                // Collect all image URLs to delete from S3
+                const imagesToDelete = [
+                    productToDelete.image1,
+                    productToDelete.image2,
+                    productToDelete.image3,
+                    productToDelete.image4,
+                    productToDelete.image5,
+                    productToDelete.image6,
+                    productToDelete.image7,
+                    productToDelete.image8,
+                    productToDelete.image9,
+                    productToDelete.image10
+                ].filter(Boolean);
+                
+                // Delete the product first
+                await deleteProduct(id);
+                
+                // Then delete all associated images
+                if (imagesToDelete.length > 0) {
+                    await api.post('/images/delete-multiple', {
+                        imageUrls: imagesToDelete
+                    });
+                }
+            } else {
+                await deleteProduct(id);
+            }
+            
             await refreshProducts();
         } catch (err) {
+            console.error('Delete error:', err);
             setOperationError('Failed to delete product');
         }
+    };
+
+    const uploadPendingImages = async (productId) => {
+        const uploadedUrls = [...formData.imgs];
+        
+        // Process each pending upload
+        for (const [index, file] of Object.entries(pendingUploads)) {
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('productId', productId || 'new');
+                formData.append('imageIndex', parseInt(index) + 1);
+                
+                const response = await api.post('/images/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                
+                uploadedUrls[index] = response.data.imageUrl;
+            } catch (error) {
+                console.error('Upload error:', error);
+                throw new Error(`Failed to upload image ${parseInt(index) + 1}`);
+            }
+        }
+        
+        // Filter out any pending_upload placeholders that failed to upload
+        return uploadedUrls.map(url => url === 'pending_upload' ? '' : url);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setOperationError('');
-
+        setSubmitting(true);
+        
         try {
-            if (editingId) {
-                await updateProduct(editingId, formData);
-            } else {
-                await addProduct(formData);
+            // First, upload any pending images
+            const hasUploads = Object.keys(pendingUploads).length > 0;
+            let processedImageUrls = [...formData.imgs];
+            
+            if (hasUploads) {
+                processedImageUrls = await uploadPendingImages(editingId);
             }
+            
+            const productData = {
+                ...formData,
+                imgs: processedImageUrls
+            };
+            
+            // Save the product data
+            if (editingId) {
+                await updateProduct(editingId, productData);
+                
+                // Delete any images that were removed
+                if (imagesToDelete.length > 0) {
+                    await api.post('/images/delete-multiple', {
+                        imageUrls: imagesToDelete
+                    });
+                }
+            } else {
+                await addProduct(productData);
+            }
+            
             await refreshProducts();
             setOpenDialog(false);
             setFormData(initialFormData);
             setEditingId(null);
+            setPendingUploads({});
+            setImagesToDelete([]);
         } catch (err) {
             console.error('Frontend error:', err.response?.data || err);
-            setOperationError('Failed to save product');
+            setOperationError(err.message || 'Failed to save product');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -150,10 +247,37 @@ export const AdminProducts = () => {
     };
 
     const handleRemoveImage = (index) => {
+        // If there's a real URL (not empty and not pending), add it to delete list
+        const imageUrl = formData.imgs[index];
+        if (imageUrl && imageUrl !== 'pending_upload' && imageUrl.startsWith('http')) {
+            setImagesToDelete(prev => [...prev, imageUrl]);
+        }
+        
+        // Remove from pending uploads if needed
+        if (pendingUploads[index]) {
+            const newPendingUploads = { ...pendingUploads };
+            delete newPendingUploads[index];
+            setPendingUploads(newPendingUploads);
+        }
+        
+        // Remove from form data
         setFormData({
             ...formData,
             imgs: formData.imgs.filter((_, i) => i !== index)
         });
+    };
+
+    const handleCloseDialog = () => {
+        // Clean up any created object URLs to prevent memory leaks
+        Object.values(pendingUploads).forEach(file => {
+            if (file && typeof file === 'string' && file.startsWith('blob:')) {
+                URL.revokeObjectURL(file);
+            }
+        });
+        
+        setOpenDialog(false);
+        setPendingUploads({});
+        setImagesToDelete([]);
     };
 
     if (isLoading) {
@@ -174,25 +298,25 @@ export const AdminProducts = () => {
                     {error || operationError}
                 </Alert>
             )}
-<Box display="flex" alignItems="center" gap={2} mb={3}>
-    <TextField
-        sx={{ flex: 1 }}
-        variant="outlined"
-        placeholder="Search products by title, description, type, price..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        InputProps={{
-            startAdornment: (
-                <InputAdornment position="start">
-                    <SearchIcon />
-                </InputAdornment>
-            )
-        }}
-    />
-    <Button variant="contained" color="primary" onClick={handleAddNew}>
-        Add New Product
-    </Button>
-</Box>
+            <Box display="flex" alignItems="center" gap={2} mb={3}>
+                <TextField
+                    sx={{ flex: 1 }}
+                    variant="outlined"
+                    placeholder="Search products by title, description, type, price..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        )
+                    }}
+                />
+                <Button variant="contained" color="primary" onClick={handleAddNew}>
+                    Add New Product
+                </Button>
+            </Box>
 
             <TableContainer component={Paper}>
                 <Table>
@@ -235,7 +359,7 @@ export const AdminProducts = () => {
                 </Table>
             </TableContainer>
 
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <form onSubmit={handleSubmit}>
                     <DialogTitle>
                         {editingId ? 'Edit Product' : 'Add New Product'}
@@ -303,14 +427,16 @@ export const AdminProducts = () => {
                         
                         {/* Image URLs */}
                         {formData.imgs.map((url, index) => (
-                                <ImageUploader
-                                    key={index}
-                                    value={url}
-                                    index={index}
-                                    onChange={handleImageChange}
-                                    onRemove={handleRemoveImage}
-                                />
-                            ))}
+                            <ImageUploader
+                                key={index}
+                                value={url}
+                                index={index}
+                                onChange={handleImageChange}
+                                onRemove={handleRemoveImage}
+                                pendingUploads={pendingUploads}
+                                setPendingUploads={setPendingUploads}
+                            />
+                        ))}
                         
                         {formData.imgs.length < 10 && (
                             <Button 
@@ -322,9 +448,20 @@ export const AdminProducts = () => {
                         )}
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                        <Button type="submit" variant="contained">
-                            {editingId ? 'Save Changes' : 'Add Product'}
+                        <Button onClick={handleCloseDialog}>Cancel</Button>
+                        <Button 
+                            type="submit" 
+                            variant="contained"
+                            disabled={submitting}
+                        >
+                            {submitting ? (
+                                <>
+                                    <CircularProgress size={24} sx={{ mr: 1 }} />
+                                    {editingId ? 'Saving...' : 'Adding...'}
+                                </>
+                            ) : (
+                                editingId ? 'Save Changes' : 'Add Product'
+                            )}
                         </Button>
                     </DialogActions>
                 </form>
