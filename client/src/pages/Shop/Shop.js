@@ -41,6 +41,7 @@ function Shop() {
     necklaces: 1,
     earrings: 2,
     bracelets: 3,
+    wedding_engagement: 4
   };
 
   const filteredProducts = category
@@ -82,6 +83,14 @@ function Shop() {
     }
   };
 
+  // Format category name for display
+  const formatCategoryName = (category) => {
+    if (category === 'wedding_engagement') {
+      return 'Wedding & Engagement';
+    }
+    return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
   if (isLoading) {
     return (
       <Box>
@@ -119,14 +128,15 @@ function Shop() {
             marginBottom: '20px',
           }}
         >
-          {category ? category.toUpperCase() : 'SHOP'}
+          {category ? formatCategoryName(category).toUpperCase() : 'SHOP'}
         </Typography>
 
         {/* Mobile-friendly category buttons */}
         <Box sx={{
-          display: isMobile ? 'flex' : 'flex',
+          display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'center',
+          flexWrap: isMobile ? 'nowrap' : 'wrap',
           gap: 2,
           padding: '0 16px',
           marginBottom: '32px'
@@ -143,7 +153,7 @@ function Shop() {
           >
             All Products
           </Button>
-          {['rings', 'necklaces', 'earrings', 'bracelets'].map((cat) => (
+          {['rings', 'necklaces', 'earrings', 'bracelets', 'wedding_engagement'].map((cat) => (
             <Button
               key={cat}
               color="inherit"
@@ -155,81 +165,89 @@ function Shop() {
               }}
               onClick={() => navigate(`/shop/${cat}`)}
             >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {formatCategoryName(cat)}
             </Button>
           ))}
         </Box>
 
         <Grid container spacing={4} sx={{ padding: '20px' }}>
-          {filteredProducts.map((product) => {
-            const stockMessage = getStockMessage(product);
-            const available = isProductAvailable(product);
-            const cartItem = getItem(product.id);
+          {filteredProducts.length === 0 ? (
+            <Box width="100%" textAlign="center" py={8}>
+              <Typography variant="h6">
+                No products found in this category.
+              </Typography>
+            </Box>
+          ) : (
+            filteredProducts.map((product) => {
+              const stockMessage = getStockMessage(product);
+              const available = isProductAvailable(product);
+              const cartItem = getItem(product.id);
 
-            return (
-              <Grid item xs={6} sm={6} md={4} lg={3} key={product.id}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s, box-shadow 0.3s',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: 6,
-                    },
-                  }}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <CardMedia
-                    component="img"
-                    height="250"
-                    image={product.image1}
-                    alt={product.title}
-                    sx={{ objectFit: 'cover' }}
-                    loading="lazy"
-                  />
-                  <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography gutterBottom variant="h6" component="div" align="center" sx={{ fontWeight: 'bold' }}>
-                      {product.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      ${product.price}
-                    </Typography>
-                    {stockMessage && (
-                      <Typography 
-                        variant="body2" 
-                        color={available ? 'warning.main' : 'error.main'} 
-                        sx={{ mt: 1, textAlign: 'center' }}
-                      >
-                        {stockMessage}
+              return (
+                <Grid item xs={6} sm={6} md={4} lg={3} key={product.id}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'transform 0.3s, box-shadow 0.3s',
+                      '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: 6,
+                      },
+                    }}
+                    onClick={() => navigate(`/product/${product.id}`)}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="250"
+                      image={product.image1}
+                      alt={product.title}
+                      sx={{ objectFit: 'cover' }}
+                      loading="lazy"
+                    />
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Typography gutterBottom variant="h6" component="div" align="center" sx={{ fontWeight: 'bold' }}>
+                        {product.title}
                       </Typography>
-                    )}
-                    <Button
-                      sx={{
-                        color: theme.palette.text.primary,
-                        backgroundColor: '#333',
-                        transition: 'all 0.3s ease-in-out',
-                        '&:hover': { backgroundColor: '#515151', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
-                        marginTop: '10px',
-                      }}
-                      variant="contained"
-                      onClick={(e) => handleAddToCart(e, product)}
-                      disabled={!available}
-                    >
-                      {cartItem && !available 
-                        ? 'Maximum in Cart' 
-                        : available 
-                          ? 'Add to Cart' 
-                          : 'Out of Stock'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        ${product.price}
+                      </Typography>
+                      {stockMessage && (
+                        <Typography 
+                          variant="body2" 
+                          color={available ? 'warning.main' : 'error.main'} 
+                          sx={{ mt: 1, textAlign: 'center' }}
+                        >
+                          {stockMessage}
+                        </Typography>
+                      )}
+                      <Button
+                        sx={{
+                          color: theme.palette.text.primary,
+                          backgroundColor: '#333',
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': { backgroundColor: '#515151', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
+                          marginTop: '10px',
+                        }}
+                        variant="contained"
+                        onClick={(e) => handleAddToCart(e, product)}
+                        disabled={!available}
+                      >
+                        {cartItem && !available 
+                          ? 'Maximum in Cart' 
+                          : available 
+                            ? 'Add to Cart' 
+                            : 'Out of Stock'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })
+          )}
         </Grid>
 
         <Snackbar
