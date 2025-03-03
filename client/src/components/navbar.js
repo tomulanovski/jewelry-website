@@ -34,6 +34,16 @@ const NavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Category mapping to ensure consistency between display names and URL parameters
+  const categories = [
+    { display: 'Shop All', param: '' },
+    { display: 'Rings', param: 'rings' },
+    { display: 'Necklaces', param: 'necklaces' },
+    { display: 'Earrings', param: 'earrings' },
+    { display: 'Bracelets', param: 'bracelets' },
+    { display: 'Wedding & Engagement', param: 'wedding_engagement' }
+  ];
+
   const handleMenuOpen = (event) => {
     if (!isMobile) {
       setAnchorEl(event.currentTarget);
@@ -48,8 +58,8 @@ const NavBar = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  const handleMenuItemClick = (category) => {
-    navigate(`/shop/${category.toLowerCase()}`);
+  const handleMenuItemClick = (categoryParam) => {
+    navigate(`/shop/${categoryParam}`);
     handleMenuClose();
     setMobileMenuOpen(false);
   };
@@ -91,24 +101,20 @@ const NavBar = () => {
         <ListItem button component={Link} to="/" onClick={() => setMobileMenuOpen(false)}>
           <ListItemText primary="Home" sx={{ color: theme.palette.text.primary }} />
         </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('')}>
-          <ListItemText primary="Shop All" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('Earrings')}>
-          <ListItemText primary="Earrings" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('Rings')}>
-          <ListItemText primary="Rings" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('Necklaces')}>
-          <ListItemText primary="Necklaces" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('Bracelets')}>
-          <ListItemText primary="Bracelets" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-        <ListItem button onClick={() => handleMenuItemClick('Engagements')}>
-          <ListItemText primary="Engagements" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
+        
+        {categories.map((category) => (
+          <ListItem 
+            button 
+            key={category.param || 'all'} 
+            onClick={() => handleMenuItemClick(category.param)}
+          >
+            <ListItemText 
+              primary={category.display} 
+              sx={{ color: theme.palette.text.primary }} 
+            />
+          </ListItem>
+        ))}
+        
         <ListItem button component={Link} to="/about" onClick={() => setMobileMenuOpen(false)}>
           <ListItemText primary="About" sx={{ color: theme.palette.text.primary }} />
         </ListItem>
@@ -313,24 +319,14 @@ const NavBar = () => {
             onMouseLeave: handleMenuClose,
           }}
         >
-          <MenuItem onClick={() => handleMenuItemClick('')}>
-            Full collection
-          </MenuItem>
-          <MenuItem onClick={() => handleMenuItemClick('Earrings')}>
-            Earrings
-          </MenuItem>
-          <MenuItem onClick={() => handleMenuItemClick('Rings')}>
-            Rings
-          </MenuItem>
-          <MenuItem onClick={() => handleMenuItemClick('Necklaces')}>
-            Necklaces
-          </MenuItem>
-          <MenuItem onClick={() => handleMenuItemClick('Bracelets')}>
-            Bracelets
-          </MenuItem>
-          <MenuItem onClick={() => handleMenuItemClick('Engagements')}>
-            Engagements
-          </MenuItem>
+          {categories.map((category) => (
+            <MenuItem 
+              key={category.param || 'all'} 
+              onClick={() => handleMenuItemClick(category.param)}
+            >
+              {category.display}
+            </MenuItem>
+          ))}
         </Menu>
 
         {/* Mobile Menu Drawer */}
