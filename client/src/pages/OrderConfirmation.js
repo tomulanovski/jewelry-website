@@ -16,7 +16,6 @@ import {
     AccessTime as TimeIcon
 } from '@mui/icons-material';
 import NavBar from '../components/navbar';
-import axios from 'axios';
 import api from '../services/api';
 
 function OrderConfirmation() {
@@ -30,9 +29,6 @@ function OrderConfirmation() {
 
     const handleResendEmail = async () => {
         try {
-            // await axios.post(`/api/orders/${id}/resend-email`, {
-            //     orderDetails: orderDetails
-            // });
             await api.post(`/orders/${id}/resend-email`, {
                 orderDetails: orderDetails
             });
@@ -110,7 +106,7 @@ function OrderConfirmation() {
                         Order #{id}
                     </Typography>
 
-                    {/* Status Icons */}
+                    {/* Status Icons - COMMENTED OUT
                     <Box 
                         sx={{ 
                             display: 'flex', 
@@ -140,7 +136,9 @@ function OrderConfirmation() {
                             </Typography>
                         </Box>
                     </Box>
+                    */}
 
+                    {/* Error and Email Resend - COMMENTED OUT
                     {error && (
                         <Alert severity="error" sx={{ mb: 3 }}>
                             {error}
@@ -156,6 +154,7 @@ function OrderConfirmation() {
                             Resend Confirmation Email
                         </Button>
                     )}
+                    */}
                 </Paper>
 
                 <Grid container spacing={3}>

@@ -1,2 +1,1 @@
-- need to put all images in a cloud and change the urls in the data base
 - need to do automatic email send when the order is complete

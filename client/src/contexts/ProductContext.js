@@ -110,8 +110,6 @@ function ProductProvider({ children }) {
                 type: productData.type,
                 imgs: Array.isArray(productData.imgs) ? productData.imgs : [productData.imgs]
             };
-
-            // const response = await axios.put(`http://localhost:3000/product/${productId}`, dataToSend);
             const response = await api.put(`/product/${productId}`, dataToSend);
             dispatch({ type: 'UPDATE_PRODUCT', payload: response.data });
             return response.data;
