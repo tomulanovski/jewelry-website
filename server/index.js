@@ -11,12 +11,6 @@ import shopRoutes from './controllers/ShopController.js';
 import productRoutes from './controllers/ProductController.js'
 import paymentRoutes from './controllers/PaymentRoutes.js'
 import imageRoutes from './controllers/ImageController.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -76,19 +70,6 @@ app.get('/products', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-// Serve static files from the React app build directory
-if (process.env.NODE_ENV === 'production') {
-  // Adjust this path to match where your React build folder is located
-  const buildPath = path.join(__dirname, '../client/build');
-  
-  app.use(express.static(buildPath));
-  
-  // This "catch-all" route must come AFTER all your API routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-  });
-}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
