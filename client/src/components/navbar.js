@@ -15,6 +15,7 @@ import {
   ListItemText,
   useMediaQuery
 } from '@mui/material';
+import logo from '../logo.png';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -145,18 +146,22 @@ const NavBar = () => {
         }}
       >
         {/* Logo/Brand */}
-        <Typography
-          variant="h6"
+        <Box
           sx={{ 
-            color: theme.palette.text.primary,
-            fontSize: { xs: '1.1rem', sm: '1.25rem' },
             marginRight: { xs: 1, sm: 2 }
           }}
         >
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-            CUBijoux
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <img 
+              src={logo} 
+              alt="CU Logo" 
+              style={{ 
+                height: '60px',
+                width: 'auto'
+              }} 
+            />
           </Link>
-        </Typography>
+        </Box>
 
         {/* Desktop Search Bar */}
         {!isMobile && (
