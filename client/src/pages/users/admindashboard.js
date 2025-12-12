@@ -13,7 +13,7 @@ import {
   CardContent,
   CardActions
 } from '@mui/material';
-import { Store as StoreIcon, People as PeopleIcon } from '@mui/icons-material';
+import { Store as StoreIcon, People as PeopleIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import NavBar from '../../components/navbar';
 
 export const AdminDashboard = () => {
@@ -68,6 +68,31 @@ export const AdminDashboard = () => {
             </Card>
           </Grid>
 
+          {/* Orders Management Card */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <ShoppingCartIcon sx={{ mr: 2 }} />
+                  <Typography variant="h6">
+                    Orders Management
+                  </Typography>
+                </Box>
+                <Typography color="text.secondary">
+                  View all customer orders and details
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => navigate('/admin/orders')}
+                >
+                  View Orders
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
           {/* Users Overview Card */}
           <Grid item xs={12} md={6}>
             <Card>
@@ -83,8 +108,8 @@ export const AdminDashboard = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  size="small" 
+                <Button
+                  size="small"
                   onClick={() => navigate('/admin/users')}
                 >
                   View Users

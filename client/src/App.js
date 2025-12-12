@@ -16,6 +16,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AdminRoute } from './components/AdminRoute';
 import { AdminDashboard } from './pages/users/admindashboard';
 import { AdminProducts } from './pages/Admin/AdminProducts';
+import { AdminOrders } from './pages/Admin/AdminOrders';
 
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
             <Route element={<AdminRoute />}>
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
+                  <Route path="/admin/orders" element={<AdminOrders />} />
                 </Route>
           </Routes>
         </CartProvider>
