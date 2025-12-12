@@ -42,7 +42,12 @@ export const AdminOrders = () => {
             console.log('Orders response:', response.data);
 
             if (response.data.success) {
-                setOrders(response.data.orders);
+                // Filter out test orders
+                const filteredOrders = response.data.orders.filter(order => {
+                    const customerName = order.customer_name?.toLowerCase() || '';
+                    return customerName !== 'john doe' && customerName !== 'tom ulanovski';
+                });
+                setOrders(filteredOrders);
             } else {
                 setError('Failed to load orders: ' + (response.data.error || 'Unknown error'));
             }
@@ -120,7 +125,6 @@ export const AdminOrders = () => {
                             <TableCell>Email</TableCell>
                             <TableCell>Date</TableCell>
                             <TableCell>Total</TableCell>
-                            <TableCell>Status</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -132,13 +136,6 @@ export const AdminOrders = () => {
                                 <TableCell>{order.guest_email || 'N/A'}</TableCell>
                                 <TableCell>{formatDate(order.created_at)}</TableCell>
                                 <TableCell>${order.total_amount}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={order.status}
-                                        color={getStatusColor(order.status)}
-                                        size="small"
-                                    />
-                                </TableCell>
                                 <TableCell>
                                     <Button
                                         size="small"
@@ -152,7 +149,7 @@ export const AdminOrders = () => {
                         ))}
                         {orders.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">
+                                <TableCell colSpan={6} align="center">
                                     No orders found
                                 </TableCell>
                             </TableRow>
