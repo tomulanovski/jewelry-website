@@ -1,5 +1,32 @@
 import express from 'express';
+import db from '../db.js';
 const router = express.Router();
+
+// TEMPORARY: Get last order details (remove after viewing)
+router.get('/latest', async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT * FROM orders ORDER BY id DESC LIMIT 1'
+        );
+
+        if (result.rows.length > 0) {
+            const order = result.rows[0];
+            res.json({
+                orderId: order.id,
+                userId: order.user_id,
+                status: order.status,
+                createdAt: order.created_at || null,
+                items: JSON.parse(order.items),
+                shippingDetails: JSON.parse(order.shipping_details)
+            });
+        } else {
+            res.status(404).json({ message: 'No orders found' });
+        }
+    } catch (error) {
+        console.error('Error fetching last order:', error);
+        res.status(500).json({ error: 'Error fetching order' });
+    }
+});
 
 router.post('/checkout', async (req, res) => {
     const { userId, cartItems, shippingDetails } = req.body;
