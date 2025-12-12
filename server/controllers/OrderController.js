@@ -38,13 +38,27 @@ router.get('/debug', async (req, res) => {
         // Check if table exists and get count
         const countResult = await db.query('SELECT COUNT(*) FROM orders');
 
-        // Get all orders (limited to 5 for safety)
-        const ordersResult = await db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 5');
+        // Get the last order with ALL fields
+        const lastOrderResult = await db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 1');
+
+        // Check if there's an order_items table
+        let orderItems = null;
+        try {
+            const itemsResult = await db.query(
+                'SELECT * FROM order_items WHERE order_id = $1',
+                [lastOrderResult.rows[0]?.id]
+            );
+            orderItems = itemsResult.rows;
+        } catch (e) {
+            orderItems = 'order_items table does not exist or error: ' + e.message;
+        }
 
         res.json({
             success: true,
             totalOrders: countResult.rows[0].count,
-            orders: ordersResult.rows
+            lastOrder: lastOrderResult.rows[0],
+            orderItems: orderItems,
+            allFieldsInOrder: Object.keys(lastOrderResult.rows[0] || {})
         });
     } catch (error) {
         res.status(500).json({
