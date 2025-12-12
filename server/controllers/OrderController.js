@@ -32,7 +32,7 @@ router.get('/latest', async (req, res) => {
     }
 });
 
-// TEMPORARY: Debug endpoint to check orders table
+// TEMPORARY: Debug endpoint to check orders table with full product details
 router.get('/debug', async (req, res) => {
     try {
         // Check if table exists and get count
@@ -41,24 +41,31 @@ router.get('/debug', async (req, res) => {
         // Get the last order with ALL fields
         const lastOrderResult = await db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 1');
 
-        // Check if there's an order_items table
-        let orderItems = null;
-        try {
-            const itemsResult = await db.query(
-                'SELECT * FROM order_items WHERE order_id = $1',
-                [lastOrderResult.rows[0]?.id]
-            );
-            orderItems = itemsResult.rows;
-        } catch (e) {
-            orderItems = 'order_items table does not exist or error: ' + e.message;
-        }
+        // Get order items
+        const itemsResult = await db.query(
+            'SELECT * FROM order_items WHERE order_id = $1',
+            [lastOrderResult.rows[0]?.id]
+        );
+
+        // Get product details for each item
+        const itemsWithProducts = await Promise.all(
+            itemsResult.rows.map(async (item) => {
+                const productResult = await db.query(
+                    'SELECT id, name, description, price, category, subcategory, image_url FROM products WHERE id = $1',
+                    [item.product_id]
+                );
+                return {
+                    ...item,
+                    product: productResult.rows[0] || null
+                };
+            })
+        );
 
         res.json({
             success: true,
             totalOrders: countResult.rows[0].count,
             lastOrder: lastOrderResult.rows[0],
-            orderItems: orderItems,
-            allFieldsInOrder: Object.keys(lastOrderResult.rows[0] || {})
+            orderItems: itemsWithProducts
         });
     } catch (error) {
         res.status(500).json({
