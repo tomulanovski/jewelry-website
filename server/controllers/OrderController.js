@@ -24,7 +24,35 @@ router.get('/latest', async (req, res) => {
         }
     } catch (error) {
         console.error('Error fetching last order:', error);
-        res.status(500).json({ error: 'Error fetching order' });
+        res.status(500).json({
+            error: 'Error fetching order',
+            message: error.message,
+            detail: error.detail || 'No additional details'
+        });
+    }
+});
+
+// TEMPORARY: Debug endpoint to check orders table
+router.get('/debug', async (req, res) => {
+    try {
+        // Check if table exists and get count
+        const countResult = await db.query('SELECT COUNT(*) FROM orders');
+
+        // Get all orders (limited to 5 for safety)
+        const ordersResult = await db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 5');
+
+        res.json({
+            success: true,
+            totalOrders: countResult.rows[0].count,
+            orders: ordersResult.rows
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            code: error.code,
+            detail: error.detail
+        });
     }
 });
 
