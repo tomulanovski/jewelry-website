@@ -51,7 +51,7 @@ router.get('/debug', async (req, res) => {
         const itemsWithProducts = await Promise.all(
             itemsResult.rows.map(async (item) => {
                 const productResult = await db.query(
-                    'SELECT id, name, description, price, category, subcategory, image_url FROM products WHERE id = $1',
+                    'SELECT * FROM products WHERE id = $1',
                     [item.product_id]
                 );
                 return {
