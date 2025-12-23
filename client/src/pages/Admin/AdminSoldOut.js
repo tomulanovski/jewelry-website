@@ -43,6 +43,7 @@ export const AdminSoldOut = () => {
     const [tabValue, setTabValue] = useState(0);
     const [reactivatingProducts, setReactivatingProducts] = useState(new Set());
     const [reactivateDialog, setReactivateDialog] = useState({ open: false, product: null, quantity: 1 });
+    const [unhideDialog, setUnhideDialog] = useState({ open: false, product: null, quantity: 1 });
 
     // Fetch all products including hidden/sold out for admin
     const fetchAllProducts = async () => {
@@ -118,7 +119,7 @@ export const AdminSoldOut = () => {
         }
     };
 
-    const handleUnhide = async (product) => {
+    const handleUnhide = async (product, quantity) => {
         try {
             setReactivatingProducts(prev => new Set(prev).add(product.id));
             setError('');
@@ -128,7 +129,7 @@ export const AdminSoldOut = () => {
                 title: product.title,
                 description: product.description,
                 price: product.price,
-                quantity: 1,
+                quantity: quantity,
                 materials: product.materials,
                 type: product.type,
                 imgs: [
@@ -145,7 +146,8 @@ export const AdminSoldOut = () => {
                 ].filter(Boolean)
             });
 
-            setSuccess(`Product "${product.title}" unhidden`);
+            setSuccess(`Product "${product.title}" unhidden with quantity ${quantity}`);
+            setUnhideDialog({ open: false, product: null, quantity: 1 });
             await fetchAllProducts();
         } catch (err) {
             console.error('Unhide error:', err);
@@ -165,6 +167,14 @@ export const AdminSoldOut = () => {
 
     const closeReactivateDialog = () => {
         setReactivateDialog({ open: false, product: null, quantity: 1 });
+    };
+
+    const openUnhideDialog = (product) => {
+        setUnhideDialog({ open: true, product, quantity: 1 });
+    };
+
+    const closeUnhideDialog = () => {
+        setUnhideDialog({ open: false, product: null, quantity: 1 });
     };
 
     if (isLoading) {
@@ -300,7 +310,7 @@ export const AdminSoldOut = () => {
                                                 color="primary"
                                                 size="small"
                                                 startIcon={<UnhideIcon />}
-                                                onClick={() => handleUnhide(product)}
+                                                onClick={() => openUnhideDialog(product)}
                                                 disabled={isReactivating}
                                             >
                                                 Unhide
