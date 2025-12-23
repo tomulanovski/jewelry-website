@@ -42,8 +42,6 @@ export const AdminSoldOut = () => {
     const [success, setSuccess] = useState('');
     const [tabValue, setTabValue] = useState(0);
     const [reactivatingProducts, setReactivatingProducts] = useState(new Set());
-    const [reactivateDialog, setReactivateDialog] = useState({ open: false, product: null, quantity: 1 });
-    const [unhideDialog, setUnhideDialog] = useState({ open: false, product: null, quantity: 1 });
 
     // Fetch all products including hidden/sold out for admin
     const fetchAllProducts = async () => {
@@ -77,7 +75,7 @@ export const AdminSoldOut = () => {
         setTabValue(newValue);
     };
 
-    const handleReactivate = async (product, quantity) => {
+    const handleReactivate = async (product) => {
         try {
             setReactivatingProducts(prev => new Set(prev).add(product.id));
             setError('');
@@ -87,7 +85,7 @@ export const AdminSoldOut = () => {
                 title: product.title,
                 description: product.description,
                 price: product.price,
-                quantity: quantity,
+                quantity: 1,
                 materials: product.materials,
                 type: product.type,
                 imgs: [
@@ -104,8 +102,7 @@ export const AdminSoldOut = () => {
                 ].filter(Boolean)
             });
 
-            setSuccess(`Product "${product.title}" reactivated with quantity ${quantity}`);
-            setReactivateDialog({ open: false, product: null, quantity: 1 });
+            setSuccess(`Product "${product.title}" reactivated with quantity 1`);
             await fetchAllProducts();
         } catch (err) {
             console.error('Reactivate error:', err);
@@ -119,7 +116,7 @@ export const AdminSoldOut = () => {
         }
     };
 
-    const handleUnhide = async (product, quantity) => {
+    const handleUnhide = async (product) => {
         try {
             setReactivatingProducts(prev => new Set(prev).add(product.id));
             setError('');
@@ -129,7 +126,7 @@ export const AdminSoldOut = () => {
                 title: product.title,
                 description: product.description,
                 price: product.price,
-                quantity: quantity,
+                quantity: 1,
                 materials: product.materials,
                 type: product.type,
                 imgs: [
@@ -146,8 +143,7 @@ export const AdminSoldOut = () => {
                 ].filter(Boolean)
             });
 
-            setSuccess(`Product "${product.title}" unhidden with quantity ${quantity}`);
-            setUnhideDialog({ open: false, product: null, quantity: 1 });
+            setSuccess(`Product "${product.title}" unhidden with quantity 1`);
             await fetchAllProducts();
         } catch (err) {
             console.error('Unhide error:', err);
@@ -159,22 +155,6 @@ export const AdminSoldOut = () => {
                 return newSet;
             });
         }
-    };
-
-    const openReactivateDialog = (product) => {
-        setReactivateDialog({ open: true, product, quantity: 1 });
-    };
-
-    const closeReactivateDialog = () => {
-        setReactivateDialog({ open: false, product: null, quantity: 1 });
-    };
-
-    const openUnhideDialog = (product) => {
-        setUnhideDialog({ open: true, product, quantity: 1 });
-    };
-
-    const closeUnhideDialog = () => {
-        setUnhideDialog({ open: false, product: null, quantity: 1 });
     };
 
     if (isLoading) {
@@ -259,7 +239,7 @@ export const AdminSoldOut = () => {
                                                 color="success"
                                                 size="small"
                                                 startIcon={<AddIcon />}
-                                                onClick={() => openReactivateDialog(product)}
+                                                onClick={() => handleReactivate(product)}
                                                 disabled={isReactivating}
                                             >
                                                 Reactivate
@@ -310,7 +290,7 @@ export const AdminSoldOut = () => {
                                                 color="primary"
                                                 size="small"
                                                 startIcon={<UnhideIcon />}
-                                                onClick={() => openUnhideDialog(product)}
+                                                onClick={() => handleUnhide(product)}
                                                 disabled={isReactivating}
                                             >
                                                 Unhide
@@ -331,57 +311,6 @@ export const AdminSoldOut = () => {
                 </TableContainer>
             )}
 
-            {/* Reactivate Dialog */}
-            <Dialog open={reactivateDialog.open} onClose={closeReactivateDialog} maxWidth="sm" fullWidth>
-                <DialogTitle sx={{ color: 'black' }}>
-                    Reactivate Product
-                </DialogTitle>
-                <DialogContent sx={{ color: 'black' }}>
-                    {reactivateDialog.product && (
-                        <Box sx={{ pt: 2 }}>
-                            <Typography sx={{ mb: 2, color: 'black' }}>
-                                Product: <strong>{reactivateDialog.product.title}</strong>
-                            </Typography>
-                            <TextField
-                                label="Quantity"
-                                type="number"
-                                fullWidth
-                                value={reactivateDialog.quantity}
-                                onChange={(e) => setReactivateDialog({
-                                    ...reactivateDialog,
-                                    quantity: Math.max(1, parseInt(e.target.value) || 1)
-                                })}
-                                inputProps={{ min: 1 }}
-                                sx={{
-                                    '& .MuiInputLabel-root': { color: 'black' },
-                                    '& .MuiOutlinedInput-input': { color: 'black' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
-                                }}
-                            />
-                        </Box>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeReactivateDialog} sx={{ color: 'black' }}>
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => handleReactivate(reactivateDialog.product, reactivateDialog.quantity)}
-                        disabled={reactivatingProducts.has(reactivateDialog.product?.id)}
-                    >
-                        {reactivatingProducts.has(reactivateDialog.product?.id) ? (
-                            <>
-                                <CircularProgress size={20} sx={{ mr: 1 }} />
-                                Reactivating...
-                            </>
-                        ) : (
-                            'Reactivate'
-                        )}
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Container>
     );
 };

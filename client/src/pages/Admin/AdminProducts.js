@@ -60,7 +60,6 @@ export const AdminProducts = () => {
     const [submitting, setSubmitting] = useState(false);
     const [imagesToDelete, setImagesToDelete] = useState([]);
     const [hidingProducts, setHidingProducts] = useState(new Set());
-    const [unhideDialog, setUnhideDialog] = useState({ open: false, product: null, quantity: 1 });
 
     // Fetch all products including hidden/sold out for admin
     const fetchAllProducts = async () => {
@@ -210,14 +209,14 @@ export const AdminProducts = () => {
         }
     };
 
-    const handleUnhide = async (product, quantity) => {
+    const handleUnhide = async (product) => {
         try {
             setHidingProducts(prev => new Set(prev).add(product.id));
+            // Set quantity to 1 when unhiding
             await updateProduct(product.id, {
                 ...product,
-                quantity: quantity
+                quantity: 1
             });
-            setUnhideDialog({ open: false, product: null, quantity: 1 });
             await fetchAllProducts();
         } catch (err) {
             console.error('Unhide error:', err);
@@ -229,15 +228,6 @@ export const AdminProducts = () => {
                 return newSet;
             });
         }
-    };
-
-    const openUnhideDialog = (product) => {
-        console.log('Opening unhide dialog for product:', product);
-        setUnhideDialog({ open: true, product, quantity: 1 });
-    };
-
-    const closeUnhideDialog = () => {
-        setUnhideDialog({ open: false, product: null, quantity: 1 });
     };
 
     const uploadPendingImages = async (productId) => {
@@ -447,10 +437,7 @@ export const AdminProducts = () => {
                                         </IconButton>
                                         {product.quantity === -1 ? (
                                             <IconButton 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openUnhideDialog(product);
-                                                }} 
+                                                onClick={() => handleUnhide(product)} 
                                                 color="success"
                                                 disabled={isHiding}
                                                 title="Unhide product"
@@ -625,58 +612,6 @@ export const AdminProducts = () => {
                         </Button>
                     </DialogActions>
                 </form>
-            </Dialog>
-
-            {/* Unhide Dialog */}
-            <Dialog open={unhideDialog.open} onClose={closeUnhideDialog} maxWidth="sm" fullWidth>
-                <DialogTitle sx={{ color: 'black' }}>
-                    Unhide Product
-                </DialogTitle>
-                <DialogContent sx={{ color: 'black' }}>
-                    {unhideDialog.product && (
-                        <Box sx={{ pt: 2 }}>
-                            <Typography sx={{ mb: 2, color: 'black' }}>
-                                Product: <strong>{unhideDialog.product.title}</strong>
-                            </Typography>
-                            <TextField
-                                label="Quantity"
-                                type="number"
-                                fullWidth
-                                value={unhideDialog.quantity}
-                                onChange={(e) => setUnhideDialog({
-                                    ...unhideDialog,
-                                    quantity: Math.max(1, parseInt(e.target.value) || 1)
-                                })}
-                                inputProps={{ min: 1 }}
-                                sx={{
-                                    '& .MuiInputLabel-root': { color: 'black' },
-                                    '& .MuiOutlinedInput-input': { color: 'black' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
-                                }}
-                            />
-                        </Box>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeUnhideDialog} sx={{ color: 'black' }}>
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleUnhide(unhideDialog.product, unhideDialog.quantity)}
-                        disabled={hidingProducts.has(unhideDialog.product?.id)}
-                    >
-                        {hidingProducts.has(unhideDialog.product?.id) ? (
-                            <>
-                                <CircularProgress size={24} sx={{ mr: 1 }} />
-                                Unhiding...
-                            </>
-                        ) : (
-                            'Unhide'
-                        )}
-                    </Button>
-                </DialogActions>
             </Dialog>
         </Container>
     );
