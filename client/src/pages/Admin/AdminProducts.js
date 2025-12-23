@@ -232,6 +232,7 @@ export const AdminProducts = () => {
     };
 
     const openUnhideDialog = (product) => {
+        console.log('Opening unhide dialog for product:', product);
         setUnhideDialog({ open: true, product, quantity: 1 });
     };
 
@@ -446,7 +447,10 @@ export const AdminProducts = () => {
                                         </IconButton>
                                         {product.quantity === -1 ? (
                                             <IconButton 
-                                                onClick={() => openUnhideDialog(product)} 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openUnhideDialog(product);
+                                                }} 
                                                 color="success"
                                                 disabled={isHiding}
                                                 title="Unhide product"
