@@ -130,19 +130,37 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
       const { id } = req.params;
+      
+      // Check if product exists
+      const productCheck = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+      if (productCheck.rows.length === 0) {
+          return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      // Check if product has associated order_items
+      const orderItemsCheck = await db.query(
+          'SELECT COUNT(*) FROM order_items WHERE product_id = $1',
+          [id]
+      );
+      
+      const orderItemsCount = parseInt(orderItemsCheck.rows[0].count);
+      if (orderItemsCount > 0) {
+          return res.status(400).json({ 
+              error: 'Cannot delete product',
+              message: `This product cannot be deleted because it has been ordered ${orderItemsCount} time(s). Products with order history cannot be deleted to maintain data integrity. Consider hiding the product instead.`
+          });
+      }
+      
+      // Delete the product
       const deletedProduct = await db.query(
           'DELETE FROM products WHERE id = $1 RETURNING *', 
           [id]
       );
       
-      if (deletedProduct.rows.length === 0) {
-          return res.status(404).json({ error: 'Product not found' });
-      }
-      
       res.json({ message: 'Product deleted successfully' });
   } catch(err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to delete product' });
+      console.error('Error deleting product:', err);
+      res.status(500).json({ error: 'Failed to delete product', details: err.message });
   }
 });
 

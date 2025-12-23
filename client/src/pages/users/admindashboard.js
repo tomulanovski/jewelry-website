@@ -13,7 +13,7 @@ import {
   CardContent,
   CardActions
 } from '@mui/material';
-import { Store as StoreIcon, People as PeopleIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
+import { Store as StoreIcon, People as PeopleIcon, ShoppingCart as ShoppingCartIcon, VisibilityOff as HideIcon } from '@mui/icons-material';
 import NavBar from '../../components/navbar';
 
 export const AdminDashboard = () => {
@@ -88,6 +88,31 @@ export const AdminDashboard = () => {
                   onClick={() => navigate('/admin/orders')}
                 >
                   View Orders
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
+          {/* Sold Out & Hidden Products Card */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <HideIcon sx={{ mr: 2 }} />
+                  <Typography variant="h6">
+                    Sold Out & Hidden Products
+                  </Typography>
+                </Box>
+                <Typography color="text.secondary">
+                  View and reactivate sold out or hidden products
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => navigate('/admin/sold-out')}
+                >
+                  Manage Inactive Products
                 </Button>
               </CardActions>
             </Card>

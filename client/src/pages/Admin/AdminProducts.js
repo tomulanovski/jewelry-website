@@ -21,9 +21,10 @@ import {
     Box,
     Alert,
     CircularProgress,
-    InputAdornment
+    InputAdornment,
+    Chip
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, VisibilityOff as HideIcon, Visibility as UnhideIcon } from '@mui/icons-material';
 import { useProducts } from '../../contexts/ProductContext';
 import NavBar from '../../components/navbar';
 import api from '../../services/api';
@@ -55,6 +56,7 @@ export const AdminProducts = () => {
     const [pendingUploads, setPendingUploads] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [imagesToDelete, setImagesToDelete] = useState([]);
+    const [hidingProducts, setHidingProducts] = useState(new Set());
 
     // Filter products based on search term
     const filteredProducts = useMemo(() => {
@@ -149,7 +151,60 @@ export const AdminProducts = () => {
             await refreshProducts();
         } catch (err) {
             console.error('Delete error:', err);
-            setOperationError('Failed to delete product');
+            if (err.response?.data?.message) {
+                setOperationError(err.response.data.message);
+            } else {
+                setOperationError('Failed to delete product');
+            }
+        }
+    };
+
+    const getProductStatus = (product) => {
+        if (product.quantity === -1) return { label: 'Hidden', color: 'warning' };
+        if (product.quantity === 0) return { label: 'Sold Out', color: 'error' };
+        return { label: 'Available', color: 'success' };
+    };
+
+    const handleHide = async (product) => {
+        if (!window.confirm(`Are you sure you want to hide "${product.title}"?`)) return;
+
+        try {
+            setHidingProducts(prev => new Set(prev).add(product.id));
+            await updateProduct(product.id, {
+                ...product,
+                quantity: -1
+            });
+            await refreshProducts();
+        } catch (err) {
+            console.error('Hide error:', err);
+            setOperationError('Failed to hide product');
+        } finally {
+            setHidingProducts(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(product.id);
+                return newSet;
+            });
+        }
+    };
+
+    const handleUnhide = async (product) => {
+        try {
+            setHidingProducts(prev => new Set(prev).add(product.id));
+            // Restore quantity to 1 if it was hidden (-1)
+            await updateProduct(product.id, {
+                ...product,
+                quantity: 1
+            });
+            await refreshProducts();
+        } catch (err) {
+            console.error('Unhide error:', err);
+            setOperationError('Failed to unhide product');
+        } finally {
+            setHidingProducts(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(product.id);
+                return newSet;
+            });
         }
     };
 
@@ -322,35 +377,74 @@ export const AdminProducts = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Type</TableCell>
-                            <TableCell>Price</TableCell>
-                            <TableCell>Quantity</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Title</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Type</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Price</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Quantity</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Status</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredProducts.map((product) => (
-                            <TableRow key={product.id}>
-                                <TableCell>{product.title}</TableCell>
-                                <TableCell>
-                                    {TYPES.find(type => type.value === product.type)?.label || 'Unknown'}
-                                </TableCell>
-                                <TableCell>${product.price}</TableCell>
-                                <TableCell>{product.quantity}</TableCell>
-                                <TableCell>
-                                    <IconButton onClick={() => handleEdit(product)} color="primary">
-                                        <EditIcon />
-                                    </IconButton>
-                                    <IconButton onClick={() => handleDelete(product.id)} color="error">
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {filteredProducts.map((product) => {
+                            const status = getProductStatus(product);
+                            const isHiding = hidingProducts.has(product.id);
+                            return (
+                                <TableRow key={product.id}>
+                                    <TableCell sx={{ color: 'black' }}>{product.title}</TableCell>
+                                    <TableCell sx={{ color: 'black' }}>
+                                        {TYPES.find(type => type.value === product.type)?.label || 'Unknown'}
+                                    </TableCell>
+                                    <TableCell sx={{ color: 'black' }}>${product.price}</TableCell>
+                                    <TableCell sx={{ color: 'black' }}>{product.quantity === -1 ? 'Hidden' : product.quantity}</TableCell>
+                                    <TableCell>
+                                        <Chip 
+                                            label={status.label} 
+                                            color={status.color} 
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton 
+                                            onClick={() => handleEdit(product)} 
+                                            color="primary"
+                                            disabled={isHiding}
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        {product.quantity === -1 ? (
+                                            <IconButton 
+                                                onClick={() => handleUnhide(product)} 
+                                                color="success"
+                                                disabled={isHiding}
+                                                title="Unhide product"
+                                            >
+                                                <UnhideIcon />
+                                            </IconButton>
+                                        ) : (
+                                            <IconButton 
+                                                onClick={() => handleHide(product)} 
+                                                color="warning"
+                                                disabled={isHiding}
+                                                title="Hide product"
+                                            >
+                                                <HideIcon />
+                                            </IconButton>
+                                        )}
+                                        <IconButton 
+                                            onClick={() => handleDelete(product.id)} 
+                                            color="error"
+                                            disabled={isHiding}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                         {filteredProducts.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} align="center">
+                                <TableCell colSpan={6} align="center" sx={{ color: 'black' }}>
                                     No products found
                                 </TableCell>
                             </TableRow>
@@ -361,10 +455,10 @@ export const AdminProducts = () => {
 
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <form onSubmit={handleSubmit}>
-                    <DialogTitle>
+                    <DialogTitle sx={{ color: 'black' }}>
                         {editingId ? 'Edit Product' : 'Add New Product'}
                     </DialogTitle>
-                    <DialogContent>
+                    <DialogContent sx={{ color: 'black' }}>
                         <TextField
                             margin="dense"
                             label="Title"
@@ -372,6 +466,11 @@ export const AdminProducts = () => {
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         />
                         <TextField
                             margin="dense"
@@ -381,6 +480,11 @@ export const AdminProducts = () => {
                             value={formData.price}
                             onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         />
                         <TextField
                             margin="dense"
@@ -390,6 +494,11 @@ export const AdminProducts = () => {
                             value={formData.quantity}
                             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         />
                         <TextField
                             margin="dense"
@@ -398,6 +507,11 @@ export const AdminProducts = () => {
                             value={formData.materials}
                             onChange={(e) => setFormData({ ...formData, materials: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         />
                         <TextField
                             margin="dense"
@@ -407,9 +521,14 @@ export const AdminProducts = () => {
                             value={formData.type}
                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         >
                             {TYPES.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
+                                <MenuItem key={option.value} value={option.value} sx={{ color: 'black' }}>
                                     {option.label}
                                 </MenuItem>
                             ))}
@@ -423,6 +542,11 @@ export const AdminProducts = () => {
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             required
+                            sx={{
+                                '& .MuiInputLabel-root': { color: 'black' },
+                                '& .MuiOutlinedInput-input': { color: 'black' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 0, 0, 0.23)' }
+                            }}
                         />
                         
                         {/* Image URLs */}

@@ -108,11 +108,11 @@ export const AdminOrders = () => {
                 </Alert>
             )}
 
-            <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+            <Typography variant="h4" gutterBottom sx={{ mb: 3, color: 'black' }}>
                 Orders Management
             </Typography>
 
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body1" sx={{ mb: 3, color: 'black' }}>
                 Total Orders: {orders.length}
             </Typography>
 
@@ -120,22 +120,22 @@ export const AdminOrders = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Order ID</TableCell>
-                            <TableCell>Customer</TableCell>
-                            <TableCell>Email</TableCell>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Total</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Order ID</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Customer</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Email</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Date</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Total</TableCell>
+                            <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {orders.map((order) => (
                             <TableRow key={order.id}>
-                                <TableCell>#{order.id}</TableCell>
-                                <TableCell>{order.customer_name || 'Guest'}</TableCell>
-                                <TableCell>{order.guest_email || 'N/A'}</TableCell>
-                                <TableCell>{formatDate(order.created_at)}</TableCell>
-                                <TableCell>${order.total_amount}</TableCell>
+                                <TableCell sx={{ color: 'black' }}>#{order.id}</TableCell>
+                                <TableCell sx={{ color: 'black' }}>{order.customer_name || 'Guest'}</TableCell>
+                                <TableCell sx={{ color: 'black' }}>{order.guest_email || 'N/A'}</TableCell>
+                                <TableCell sx={{ color: 'black' }}>{formatDate(order.created_at)}</TableCell>
+                                <TableCell sx={{ color: 'black' }}>${order.total_amount}</TableCell>
                                 <TableCell>
                                     <Button
                                         size="small"
@@ -149,7 +149,7 @@ export const AdminOrders = () => {
                         ))}
                         {orders.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
+                                <TableCell colSpan={6} align="center" sx={{ color: 'black' }}>
                                     No orders found
                                 </TableCell>
                             </TableRow>
@@ -160,56 +160,56 @@ export const AdminOrders = () => {
 
             {/* Order Details Dialog */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-                <DialogTitle>Order #{selectedOrder?.id} Details</DialogTitle>
-                <DialogContent>
+                <DialogTitle sx={{ color: 'black' }}>Order #{selectedOrder?.id} Details</DialogTitle>
+                <DialogContent sx={{ color: 'black' }}>
                     {selectedOrder && (
                         <Box sx={{ pt: 2 }}>
                             <Grid container spacing={3}>
                                 {/* Customer Information */}
                                 <Grid item xs={12} md={6}>
-                                    <Typography variant="h6" gutterBottom>Customer Information</Typography>
-                                    <Typography><strong>Name:</strong> {selectedOrder.customer_name || 'N/A'}</Typography>
-                                    <Typography><strong>Email:</strong> {selectedOrder.guest_email || 'N/A'}</Typography>
-                                    <Typography><strong>Phone:</strong> {selectedOrder.shipping_address?.phone || 'N/A'}</Typography>
+                                    <Typography variant="h6" gutterBottom sx={{ color: 'black' }}>Customer Information</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Name:</strong> {selectedOrder.customer_name || 'N/A'}</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Email:</strong> {selectedOrder.guest_email || 'N/A'}</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Phone:</strong> {selectedOrder.shipping_address?.phone || 'N/A'}</Typography>
                                 </Grid>
 
                                 {/* Shipping Address */}
                                 <Grid item xs={12} md={6}>
-                                    <Typography variant="h6" gutterBottom>Shipping Address</Typography>
+                                    <Typography variant="h6" gutterBottom sx={{ color: 'black' }}>Shipping Address</Typography>
                                     {selectedOrder.shipping_address ? (
                                         <>
-                                            <Typography>{selectedOrder.shipping_address.address}</Typography>
+                                            <Typography sx={{ color: 'black' }}>{selectedOrder.shipping_address.address}</Typography>
                                             {selectedOrder.shipping_address.apartment && (
-                                                <Typography>Apt: {selectedOrder.shipping_address.apartment}</Typography>
+                                                <Typography sx={{ color: 'black' }}>Apt: {selectedOrder.shipping_address.apartment}</Typography>
                                             )}
-                                            <Typography>
+                                            <Typography sx={{ color: 'black' }}>
                                                 {selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.postalCode}
                                             </Typography>
-                                            <Typography>{selectedOrder.shipping_address.country}</Typography>
+                                            <Typography sx={{ color: 'black' }}>{selectedOrder.shipping_address.country}</Typography>
                                         </>
                                     ) : (
-                                        <Typography>No address provided</Typography>
+                                        <Typography sx={{ color: 'black' }}>No address provided</Typography>
                                     )}
                                 </Grid>
 
                                 {/* Order Items */}
                                 <Grid item xs={12}>
-                                    <Typography variant="h6" gutterBottom>Order Items</Typography>
+                                    <Typography variant="h6" gutterBottom sx={{ color: 'black' }}>Order Items</Typography>
                                     <TableContainer component={Paper} variant="outlined">
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell>Product</TableCell>
-                                                    <TableCell>Materials</TableCell>
-                                                    <TableCell align="center">Qty</TableCell>
-                                                    <TableCell align="right">Price</TableCell>
-                                                    <TableCell align="right">Total</TableCell>
+                                                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Product</TableCell>
+                                                    <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Materials</TableCell>
+                                                    <TableCell align="center" sx={{ color: 'black', fontWeight: 'bold' }}>Qty</TableCell>
+                                                    <TableCell align="right" sx={{ color: 'black', fontWeight: 'bold' }}>Price</TableCell>
+                                                    <TableCell align="right" sx={{ color: 'black', fontWeight: 'bold' }}>Total</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
                                                 {selectedOrder.items?.map((item) => (
                                                     <TableRow key={item.id}>
-                                                        <TableCell>
+                                                        <TableCell sx={{ color: 'black' }}>
                                                             {item.product?.title || `Product ID: ${item.product_id}`}
                                                             {item.product?.image1 && (
                                                                 <Box
@@ -220,10 +220,10 @@ export const AdminOrders = () => {
                                                                 />
                                                             )}
                                                         </TableCell>
-                                                        <TableCell>{item.product?.materials || 'N/A'}</TableCell>
-                                                        <TableCell align="center">{item.quantity}</TableCell>
-                                                        <TableCell align="right">${item.price_at_time}</TableCell>
-                                                        <TableCell align="right">
+                                                        <TableCell sx={{ color: 'black' }}>{item.product?.materials || 'N/A'}</TableCell>
+                                                        <TableCell align="center" sx={{ color: 'black' }}>{item.quantity}</TableCell>
+                                                        <TableCell align="right" sx={{ color: 'black' }}>${item.price_at_time}</TableCell>
+                                                        <TableCell align="right" sx={{ color: 'black' }}>
                                                             ${(parseFloat(item.price_at_time) * item.quantity).toFixed(2)}
                                                         </TableCell>
                                                     </TableRow>
@@ -235,11 +235,11 @@ export const AdminOrders = () => {
 
                                 {/* Payment Information */}
                                 <Grid item xs={12}>
-                                    <Typography variant="h6" gutterBottom>Payment Information</Typography>
-                                    <Typography><strong>PayPal Order ID:</strong> {selectedOrder.paypal_order_id || 'N/A'}</Typography>
-                                    <Typography><strong>Total Amount:</strong> ${selectedOrder.total_amount}</Typography>
-                                    <Typography><strong>Status:</strong> {selectedOrder.status}</Typography>
-                                    <Typography><strong>Order Date:</strong> {formatDate(selectedOrder.created_at)}</Typography>
+                                    <Typography variant="h6" gutterBottom sx={{ color: 'black' }}>Payment Information</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>PayPal Order ID:</strong> {selectedOrder.paypal_order_id || 'N/A'}</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Total Amount:</strong> ${selectedOrder.total_amount}</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Status:</strong> {selectedOrder.status}</Typography>
+                                    <Typography sx={{ color: 'black' }}><strong>Order Date:</strong> {formatDate(selectedOrder.created_at)}</Typography>
                                 </Grid>
                             </Grid>
                         </Box>

@@ -195,6 +195,36 @@ router.post('/capture-payment/:orderId', async (req, res) => {
          VALUES ${values}`,
         params
       );
+
+      // Reduce product quantities for each item in the order
+      for (const item of orderItems) {
+        try {
+          // Get current quantity
+          const productResult = await db.query(
+            'SELECT quantity FROM products WHERE id = $1',
+            [item.productId]
+          );
+
+          if (productResult.rows.length === 0) {
+            console.error(`Product ${item.productId} not found`);
+            continue;
+          }
+
+          const currentQuantity = parseInt(productResult.rows[0].quantity);
+          const newQuantity = Math.max(0, currentQuantity - item.quantity);
+
+          // Update product quantity
+          await db.query(
+            'UPDATE products SET quantity = $1 WHERE id = $2',
+            [newQuantity, item.productId]
+          );
+
+          console.log(`Updated product ${item.productId}: ${currentQuantity} -> ${newQuantity}`);
+        } catch (productError) {
+          console.error(`Error updating quantity for product ${item.productId}:`, productError);
+          // Continue with other products even if one fails
+        }
+      }
     }
 
     res.json({

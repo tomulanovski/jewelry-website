@@ -17,6 +17,7 @@ import { AdminRoute } from './components/AdminRoute';
 import { AdminDashboard } from './pages/users/admindashboard';
 import { AdminProducts } from './pages/Admin/AdminProducts';
 import { AdminOrders } from './pages/Admin/AdminOrders';
+import { AdminSoldOut } from './pages/Admin/AdminSoldOut';
 
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/admin/orders" element={<AdminOrders />} />
+                  <Route path="/admin/sold-out" element={<AdminSoldOut />} />
                 </Route>
           </Routes>
         </CartProvider>
