@@ -10,10 +10,7 @@ import {
     Alert
 } from '@mui/material';
 import { 
-    CheckCircleOutline, 
-    Email as EmailIcon,
-    LocalShipping as ShippingIcon,
-    AccessTime as TimeIcon
+    CheckCircleOutline
 } from '@mui/icons-material';
 import NavBar from '../components/navbar';
 import api from '../services/api';
@@ -22,22 +19,8 @@ function OrderConfirmation() {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const [emailSent, setEmailSent] = useState(true);
-    const [error, setError] = useState(null);
 
     const orderDetails = location.state?.orderDetails;
-
-    const handleResendEmail = async () => {
-        try {
-            await api.post(`/orders/${id}/resend-email`, {
-                orderDetails: orderDetails
-            });
-            setEmailSent(true);
-            setError(null);
-        } catch (err) {
-            setError('Failed to resend confirmation email');
-        }
-    };
 
     if (!orderDetails) {
         return (
@@ -198,8 +181,8 @@ function OrderConfirmation() {
                                 </Typography>
                                 <Typography variant="body2">
                                     {orderDetails.shippingMethod === 'express' 
-                                        ? 'Express Shipping (Next Day Delivery)' 
-                                        : 'Standard Shipping (5-7 Business Days)'}
+                                        ? 'Express Shipping' 
+                                        : 'Standard Shipping'}
                                 </Typography>
                             </Box>
                         </Paper>
