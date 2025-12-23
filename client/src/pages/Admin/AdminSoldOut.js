@@ -36,13 +36,32 @@ const TYPES = [
 ];
 
 export const AdminSoldOut = () => {
-    const { products, refreshProducts } = useProducts();
+    const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [tabValue, setTabValue] = useState(0);
     const [reactivatingProducts, setReactivatingProducts] = useState(new Set());
     const [reactivateDialog, setReactivateDialog] = useState({ open: false, product: null, quantity: 1 });
+
+    // Fetch all products including hidden/sold out for admin
+    const fetchAllProducts = async () => {
+        try {
+            setIsLoading(true);
+            setError('');
+            const response = await api.get('/product');
+            setProducts(response.data);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+            setError('Failed to load products: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllProducts();
+    }, []);
 
     // Filter products
     const soldOutProducts = useMemo(() => {
@@ -86,7 +105,7 @@ export const AdminSoldOut = () => {
 
             setSuccess(`Product "${product.title}" reactivated with quantity ${quantity}`);
             setReactivateDialog({ open: false, product: null, quantity: 1 });
-            await refreshProducts();
+            await fetchAllProducts();
         } catch (err) {
             console.error('Reactivate error:', err);
             setError('Failed to reactivate product: ' + (err.response?.data?.error || err.message));
@@ -127,7 +146,7 @@ export const AdminSoldOut = () => {
             });
 
             setSuccess(`Product "${product.title}" unhidden`);
-            await refreshProducts();
+            await fetchAllProducts();
         } catch (err) {
             console.error('Unhide error:', err);
             setError('Failed to unhide product: ' + (err.response?.data?.error || err.message));
@@ -181,7 +200,7 @@ export const AdminSoldOut = () => {
                 <Button
                     variant="outlined"
                     startIcon={<RefreshIcon />}
-                    onClick={refreshProducts}
+                    onClick={fetchAllProducts}
                 >
                     Refresh
                 </Button>

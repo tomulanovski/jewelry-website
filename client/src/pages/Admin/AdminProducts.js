@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ImageUploader from '../../components/ImageUploader';
 import {
     Container,
@@ -47,7 +47,10 @@ const initialFormData = {
 };
 
 export const AdminProducts = () => {
-    const { products, isLoading, error, addProduct, updateProduct, deleteProduct, refreshProducts } = useProducts();
+    const { addProduct, updateProduct, deleteProduct } = useProducts();
+    const [products, setProducts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
     const [editingId, setEditingId] = useState(null);
@@ -57,6 +60,25 @@ export const AdminProducts = () => {
     const [submitting, setSubmitting] = useState(false);
     const [imagesToDelete, setImagesToDelete] = useState([]);
     const [hidingProducts, setHidingProducts] = useState(new Set());
+
+    // Fetch all products including hidden/sold out for admin
+    const fetchAllProducts = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const response = await api.get('/product');
+            setProducts(response.data);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+            setError('Failed to load products');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllProducts();
+    }, []);
 
     // Filter products based on search term
     const filteredProducts = useMemo(() => {
@@ -148,7 +170,7 @@ export const AdminProducts = () => {
                 await deleteProduct(id);
             }
             
-            await refreshProducts();
+            await fetchAllProducts();
         } catch (err) {
             console.error('Delete error:', err);
             if (err.response?.data?.message) {
@@ -174,7 +196,7 @@ export const AdminProducts = () => {
                 ...product,
                 quantity: -1
             });
-            await refreshProducts();
+            await fetchAllProducts();
         } catch (err) {
             console.error('Hide error:', err);
             setOperationError('Failed to hide product');
@@ -195,7 +217,7 @@ export const AdminProducts = () => {
                 ...product,
                 quantity: 1
             });
-            await refreshProducts();
+            await fetchAllProducts();
         } catch (err) {
             console.error('Unhide error:', err);
             setOperationError('Failed to unhide product');
@@ -269,7 +291,8 @@ export const AdminProducts = () => {
                 await addProduct(productData);
             }
             
-            await refreshProducts();
+            // Refresh the product list to show all products including hidden/sold out
+            await fetchAllProducts();
             setOpenDialog(false);
             setFormData(initialFormData);
             setEditingId(null);
