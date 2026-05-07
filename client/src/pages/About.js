@@ -5,14 +5,12 @@ import {
   Grid,
   Divider,
   Button,
-  useMediaQuery,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import NavBar from '../components/navbar';
 import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const GOLD = 'rgb(227, 217, 177)';   // theme.palette.text.primary
+const GOLD = 'rgb(227, 217, 177)';
 const BLACK = '#000000';
 const GOLD_DIM = 'rgba(227, 217, 177, 0.55)';
 const GOLD_BORDER = 'rgba(227, 217, 177, 0.25)';
@@ -31,6 +29,13 @@ const CRAFT_PILLARS = [
     title: 'Handmade from Start to Finish',
     body: 'No factory. No casting house. Every piece is drawn, shaped, set, and polished by Catherine alone — from the first sketch to the final shine.',
   },
+];
+
+// ─── Story paragraphs ────────────────────────────────────────────────────────
+const STORY_PARAGRAPHS = [
+  `Catherine grew up in a home saturated with art, history, and antiques. From an early age she understood that objects carry stories — that a well-made thing holds time inside it. That sensibility never left her.`,
+  `Gemstones became her obsession because they are, in a very literal sense, living history: formed over millions of years, shaped by the earth, and surfaced for one brief human moment. She approaches every stone the same way — studying it, listening to it, then drawing a setting that honours exactly what makes that particular stone irreplaceable.`,
+  `From that first drawing, every step is hers. She works the metal by hand, sets the stone herself, and does the final polish herself. There is no factory, no assistant, no compromise. When the piece arrives with you, it has been touched by exactly one pair of hands.`,
 ];
 
 // ─── Photo placeholder grid items ────────────────────────────────────────────
@@ -127,9 +132,6 @@ function CraftPillar({ title, body }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function About() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   return (
     <Box sx={{ backgroundColor: BLACK, minHeight: '100vh' }}>
       <NavBar />
@@ -213,11 +215,7 @@ export default function About() {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 3 }}>
-          {[
-            `Catherine grew up in a home saturated with art, history, and antiques. From an early age she understood that objects carry stories — that a well-made thing holds time inside it. That sensibility never left her.`,
-            `Gemstones became her obsession because they are, in a very literal sense, living history: formed over millions of years, shaped by the earth, and surfaced for one brief human moment. She approaches every stone the same way — studying it, listening to it, then drawing a setting that honours exactly what makes that particular stone irreplaceable.`,
-            `From that first drawing, every step is hers. She works the metal by hand, sets the stone herself, and does the final polish herself. There is no factory, no assistant, no compromise. When the piece arrives with you, it has been touched by exactly one pair of hands.`,
-          ].map((paragraph, i) => (
+          {STORY_PARAGRAPHS.map((paragraph, i) => (
             <Typography
               key={i}
               variant="body1"
@@ -347,7 +345,7 @@ export default function About() {
 
           <Button
             variant="outlined"
-            size={isMobile ? 'medium' : 'large'}
+            size="large"
             href="mailto:info@cjbijoux.com"
             sx={{
               color: GOLD,
