@@ -1,5 +1,6 @@
 import express from 'express';
 import db from '../db.js';
+import { sendOwnerNotification } from '../utils/email.js';
 const router = express.Router();
 
 // Get all orders with full details (for admin dashboard)
@@ -74,8 +75,12 @@ router.post('/checkout', async (req, res) => {
             [userId, JSON.stringify(cartItems), JSON.stringify(shippingDetails), 'Pending']
         );
 
+        // Send owner notification (non-blocking — errors are caught internally)
+        const savedOrder = orderResult.rows[0];
+        sendOwnerNotification(savedOrder, cartItems);
+
         // Respond with the order information
-        res.status(200).json({ message: 'Order placed successfully', order: orderResult.rows[0] });
+        res.status(200).json({ message: 'Order placed successfully', order: savedOrder });
     } catch (error) {
         console.error('Error during checkout:', error);
         res.status(500).send('Error placing the order.');

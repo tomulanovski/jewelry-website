@@ -1,6 +1,7 @@
 import express from 'express';
 import axios from 'axios';
 import db from '../db.js';
+import { sendOrderConfirmation, sendOwnerNotification } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -226,6 +227,15 @@ router.post('/capture-payment/:orderId', async (req, res) => {
         }
       }
     }
+
+    // Send email notifications (non-blocking — errors are caught internally)
+    const emailItems = items.map(item => ({
+      title: item.title,
+      quantity: item.quantity,
+      price: item.price
+    }));
+    sendOrderConfirmation(savedOrder, emailItems, shippingInfo.email);
+    sendOwnerNotification(savedOrder, emailItems);
 
     res.json({
       status: 'success',
