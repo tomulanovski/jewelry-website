@@ -691,7 +691,7 @@ export const AdminProducts = () => {
                                     disabled={submitting}
                                     onFilesSelected={(files) => {
                                         // Cap at 10 total
-                                        const existingCount = formData.imgs.filter(u => u && u !== 'pending_upload').length;
+                                        const existingCount = formData.imgs.filter(u => u && u.startsWith('http')).length;
                                         const allowed = Math.max(0, 10 - existingCount);
                                         setBulkFiles(files.slice(0, allowed));
                                     }}
