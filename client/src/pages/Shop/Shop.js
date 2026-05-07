@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
+import {
   Box, Typography, Card, CardMedia, CardContent, Button,
-  Snackbar, Alert, CircularProgress, useMediaQuery
+  Snackbar, Alert, Skeleton, useMediaQuery
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -95,9 +95,37 @@ function Shop() {
     return (
       <Box>
         <NavBar />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
+        <Grid container spacing={4} sx={{ padding: '20px' }}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Grid item xs={6} sm={6} md={4} lg={3} key={index}>
+              <Box sx={{ height: '100%' }}>
+                <Skeleton
+                  variant="rectangular"
+                  height={250}
+                  sx={{ bgcolor: '#1a1a1a', borderRadius: '4px 4px 0 0' }}
+                />
+                <Box sx={{ bgcolor: '#111', p: 2, borderRadius: '0 0 4px 4px' }}>
+                  <Skeleton
+                    variant="text"
+                    height={28}
+                    sx={{ bgcolor: '#1a1a1a', mb: 1 }}
+                  />
+                  <Skeleton
+                    variant="text"
+                    height={20}
+                    width="40%"
+                    sx={{ bgcolor: '#1a1a1a', mx: 'auto' }}
+                  />
+                  <Skeleton
+                    variant="rectangular"
+                    height={36}
+                    sx={{ bgcolor: '#1a1a1a', mt: 2, borderRadius: '4px' }}
+                  />
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
     );
   }
@@ -192,10 +220,12 @@ function Shop() {
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      transition: 'transform 0.3s, box-shadow 0.3s',
+                      border: '1px solid transparent',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        transform: 'translateY(-5px)',
-                        boxShadow: 6,
+                        transform: 'translateY(-4px)',
+                        border: '1px solid #e3d9b1',
+                        boxShadow: '0 8px 24px rgba(227, 217, 177, 0.15)',
                       },
                     }}
                     onClick={() => navigate(`/product/${product.id}`)}
