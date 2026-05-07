@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { 
-    Box, 
-    Typography, 
-    Paper, 
+import {
+    Box,
+    Typography,
+    Paper,
     Button,
     Grid,
     Divider,
     Alert
 } from '@mui/material';
-import { 
+import {
     CheckCircleOutline
 } from '@mui/icons-material';
 import NavBar from '../components/navbar';
 import api from '../services/api';
+import { generateReceipt } from '../utils/generateReceipt';
 
 function OrderConfirmation() {
     const { id } = useParams();
@@ -251,13 +252,28 @@ function OrderConfirmation() {
                     </Grid>
                 </Grid>
 
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Box sx={{ mt: 4, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => generateReceipt(orderDetails, id)}
+                        sx={{
+                            borderColor: '#e3d9b1',
+                            color: '#e3d9b1',
+                            '&:hover': {
+                                borderColor: '#c9bf94',
+                                backgroundColor: 'rgba(227, 217, 177, 0.08)',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+                            }
+                        }}
+                    >
+                        Download Receipt
+                    </Button>
                     <Button
                         variant="contained"
                         onClick={() => navigate('/shop')}
                         sx={{
                             backgroundColor: '#333',
-                            '&:hover': { 
+                            '&:hover': {
                                 backgroundColor: '#515151',
                                 boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
                             }
