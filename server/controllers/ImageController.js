@@ -6,37 +6,91 @@ import db from '../db.js';
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Upload image and get URL
-router.post('/upload', upload.single('image'), async (req, res) => {
+// Helper: derive a safe file extension from the mime type
+const extFromMime = (mimetype) => {
+    if (mimetype.startsWith('video/')) {
+        const sub = mimetype.split('/')[1];
+        // Map common video subtypes to extensions
+        const videoExts = { mp4: 'mp4', quicktime: 'mov', webm: 'webm', 'x-msvideo': 'avi', 'x-matroska': 'mkv' };
+        return videoExts[sub] || sub;
+    }
+    // Images
+    const sub = mimetype.split('/')[1];
+    const imgExts = { jpeg: 'jpg', jpg: 'jpg', png: 'png', gif: 'gif', webp: 'webp', svg: 'svg' };
+    return imgExts[sub] || sub || 'jpg';
+};
+
+// Upload multiple images/videos and return an array of URLs
+router.post('/upload', upload.array('images', 10), async (req, res) => {
     try {
+        const files = req.files;
+        const { productId, imageIndex } = req.body;
+
         console.log('Request received:', {
-            hasFile: !!req.file,
-            fileDetails: req.file ? {
-                size: req.file.size,
-                mimetype: req.file.mimetype,
-                hasBuffer: !!req.file.buffer
-            } : null,
+            fileCount: files ? files.length : 0,
+            fileDetails: files ? files.map(f => ({ size: f.size, mimetype: f.mimetype })) : null,
             body: req.body
         });
-        
+
+        // --- Multi-file path ---
+        if (files && files.length > 0) {
+            const uploadPromises = files.map((file, i) => {
+                const ext = extFromMime(file.mimetype);
+                const filename = `product_${productId || 'new'}_${Date.now()}_${i}.${ext}`;
+                console.log('Uploading to S3:', filename, file.mimetype);
+                return uploadToS3(file.buffer, filename, file.mimetype);
+            });
+
+            const urls = await Promise.all(uploadPromises);
+            console.log('Multi-upload successful, URLs:', urls);
+
+            return res.json({
+                success: true,
+                urls,
+                // Backward-compat alias for callers that still read imageUrl
+                imageUrl: urls[0],
+                message: `${urls.length} file(s) uploaded successfully`
+            });
+        }
+
+        // --- Backward-compatible single-file fallback (field name: 'image') ---
+        // Re-parse for legacy single upload (req.file is not set when using array())
+        // Clients that POST with field name 'image' (single) won't match array('images')
+        // so this branch handles truly empty requests
+        console.log('No files in request');
+        return res.status(400).json({ error: 'No image/video files provided' });
+
+    } catch (error) {
+        console.error('Detailed upload error:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+        });
+        res.status(500).json({
+            error: 'Failed to upload file(s)',
+            details: error.message
+        });
+    }
+});
+
+// Upload a single image (legacy endpoint — kept for backward compatibility)
+router.post('/upload-single', upload.single('image'), async (req, res) => {
+    try {
         const file = req.file;
         const { productId, imageIndex } = req.body;
-        
+
         if (!file) {
-            console.log('No file in request');
             return res.status(400).json({ error: 'No image file provided' });
         }
-        
-        // Generate unique filename
-        const filename = `product_${productId || 'new'}_${Date.now()}_${imageIndex}.jpg`;
-        console.log('Attempting S3 upload with filename:', filename);
-        
-        const imageUrl = await uploadToS3(file.buffer, filename);
-        console.log('Upload successful, URL:', imageUrl);
-        
+
+        const ext = extFromMime(file.mimetype);
+        const filename = `product_${productId || 'new'}_${Date.now()}_${imageIndex}.${ext}`;
+        const imageUrl = await uploadToS3(file.buffer, filename, file.mimetype);
+
         res.json({
             success: true,
             imageUrl,
+            urls: [imageUrl],
             message: 'Image uploaded successfully'
         });
     } catch (error) {

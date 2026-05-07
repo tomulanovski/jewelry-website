@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import ImageUploader from '../../components/ImageUploader';
+import ImageUploader, { MultiFileUploader } from '../../components/ImageUploader';
 import {
     Container,
     Paper,
@@ -22,9 +22,10 @@ import {
     Alert,
     CircularProgress,
     InputAdornment,
-    Chip
+    Chip,
+    Tooltip,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, VisibilityOff as HideIcon, Visibility as UnhideIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, VisibilityOff as HideIcon, Visibility as UnhideIcon, PlayCircleOutline as VideoIcon } from '@mui/icons-material';
 import { useProducts } from '../../contexts/ProductContext';
 import NavBar from '../../components/navbar';
 import api from '../../services/api';
@@ -57,6 +58,7 @@ export const AdminProducts = () => {
     const [operationError, setOperationError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [pendingUploads, setPendingUploads] = useState({});
+    const [bulkFiles, setBulkFiles] = useState([]); // files from multi-file uploader
     const [submitting, setSubmitting] = useState(false);
     const [imagesToDelete, setImagesToDelete] = useState([]);
     const [hidingProducts, setHidingProducts] = useState(new Set());
@@ -101,6 +103,7 @@ export const AdminProducts = () => {
         setFormData(initialFormData);
         setEditingId(null);
         setPendingUploads({});
+        setBulkFiles([]);
         setImagesToDelete([]);
         setOpenDialog(true);
     };
@@ -132,6 +135,7 @@ export const AdminProducts = () => {
         
         setEditingId(product.id);
         setPendingUploads({});
+        setBulkFiles([]);
         setImagesToDelete([]);
         setOpenDialog(true);
     };
@@ -230,32 +234,64 @@ export const AdminProducts = () => {
         }
     };
 
+    // Upload all pending files (both single-slot and bulk) and return the merged URL list.
     const uploadPendingImages = async (productId) => {
-        const uploadedUrls = [...formData.imgs];
-        
-        // Process each pending upload
-        for (const [index, file] of Object.entries(pendingUploads)) {
-            try {
-                const formData = new FormData();
-                formData.append('image', file);
-                formData.append('productId', productId || 'new');
-                formData.append('imageIndex', parseInt(index) + 1);
-                
-                const response = await api.post('/images/upload', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                
-                uploadedUrls[index] = response.data.imageUrl;
-            } catch (error) {
-                console.error('Upload error:', error);
-                throw new Error(`Failed to upload image ${parseInt(index) + 1}`);
+        let uploadedUrls = [...formData.imgs];
+
+        // --- 1. Single-slot pending uploads (one file per index) ---
+        const singleEntries = Object.entries(pendingUploads);
+        if (singleEntries.length > 0) {
+            for (const [index, file] of singleEntries) {
+                try {
+                    const fd = new FormData();
+                    fd.append('images', file);
+                    fd.append('productId', productId || 'new');
+                    fd.append('imageIndex', parseInt(index) + 1);
+
+                    const response = await api.post('/images/upload', fd, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+
+                    // Server returns { urls: [...] } — take the first URL
+                    const url = response.data.urls?.[0] || response.data.imageUrl;
+                    uploadedUrls[parseInt(index)] = url;
+                } catch (error) {
+                    console.error('Single upload error:', error);
+                    throw new Error(`Failed to upload image ${parseInt(index) + 1}`);
+                }
             }
         }
-        
-        // Filter out any pending_upload placeholders that failed to upload
-        return uploadedUrls.map(url => url === 'pending_upload' ? '' : url);
+
+        // --- 2. Bulk multi-file uploads ---
+        if (bulkFiles.length > 0) {
+            const fd = new FormData();
+            bulkFiles.forEach(file => fd.append('images', file));
+            fd.append('productId', productId || 'new');
+
+            const response = await api.post('/images/upload', fd, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            const newUrls = response.data.urls || [];
+            // Append new URLs after any existing ones (fill slots left by pending_upload placeholders first,
+            // then add to the end — up to 10 total)
+            let insertIdx = 0;
+            for (const url of newUrls) {
+                // Find next available empty/placeholder slot
+                while (insertIdx < uploadedUrls.length && uploadedUrls[insertIdx] && uploadedUrls[insertIdx] !== 'pending_upload') {
+                    insertIdx++;
+                }
+                if (insertIdx < uploadedUrls.length) {
+                    uploadedUrls[insertIdx] = url;
+                } else if (uploadedUrls.length < 10) {
+                    uploadedUrls.push(url);
+                }
+                insertIdx++;
+            }
+        }
+
+        // Remove pending_upload placeholders that were not filled
+        return uploadedUrls.map(url => (url === 'pending_upload' ? '' : url)).filter(Boolean);
     };
 
     const handleSubmit = async (e) => {
@@ -265,7 +301,7 @@ export const AdminProducts = () => {
         
         try {
             // First, upload any pending images
-            const hasUploads = Object.keys(pendingUploads).length > 0;
+            const hasUploads = Object.keys(pendingUploads).length > 0 || bulkFiles.length > 0;
             let processedImageUrls = [...formData.imgs];
             
             if (hasUploads) {
@@ -297,6 +333,7 @@ export const AdminProducts = () => {
             setFormData(initialFormData);
             setEditingId(null);
             setPendingUploads({});
+            setBulkFiles([]);
             setImagesToDelete([]);
         } catch (err) {
             console.error('Frontend error:', err.response?.data || err);
@@ -355,6 +392,7 @@ export const AdminProducts = () => {
         
         setOpenDialog(false);
         setPendingUploads({});
+        setBulkFiles([]);
         setImagesToDelete([]);
     };
 
@@ -572,27 +610,121 @@ export const AdminProducts = () => {
                             }}
                         />
                         
-                        {/* Image URLs */}
-                        {formData.imgs.map((url, index) => (
-                            <ImageUploader
-                                key={index}
-                                value={url}
-                                index={index}
-                                onChange={handleImageChange}
-                                onRemove={handleRemoveImage}
-                                pendingUploads={pendingUploads}
-                                setPendingUploads={setPendingUploads}
-                            />
-                        ))}
-                        
-                        {formData.imgs.length < 10 && (
-                            <Button 
-                                onClick={handleAddImage}
-                                sx={{ mt: 1 }}
-                            >
-                                Add Another Image URL
-                            </Button>
+                        {/* ── Existing images grid (with per-image delete) ── */}
+                        {formData.imgs.filter(url => url && url !== 'pending_upload' && url.startsWith('http')).length > 0 && (
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2" sx={{ color: 'black', mb: 1 }}>
+                                    Current Images / Videos
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {formData.imgs.map((url, index) => {
+                                        if (!url || url === 'pending_upload' || !url.startsWith('http')) return null;
+                                        const isVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
+                                        return (
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    position: 'relative',
+                                                    width: 80,
+                                                    height: 80,
+                                                    borderRadius: 1,
+                                                    overflow: 'hidden',
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                }}
+                                            >
+                                                {isVid ? (
+                                                    <Box
+                                                        sx={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            bgcolor: 'grey.200',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        <VideoIcon color="action" />
+                                                        <Typography variant="caption" sx={{ fontSize: 9, textAlign: 'center', px: 0.5 }}>
+                                                            Video
+                                                        </Typography>
+                                                    </Box>
+                                                ) : (
+                                                    <img
+                                                        src={url}
+                                                        alt={`Product image ${index + 1}`}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
+                                                )}
+                                                <Tooltip title="Remove this image">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleRemoveImage(index)}
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            right: 0,
+                                                            bgcolor: 'rgba(0,0,0,0.5)',
+                                                            color: 'white',
+                                                            p: 0.25,
+                                                            '&:hover': { bgcolor: 'rgba(200,0,0,0.8)' },
+                                                        }}
+                                                    >
+                                                        <DeleteIcon sx={{ fontSize: 14 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        );
+                                    })}
+                                </Box>
+                            </Box>
                         )}
+
+                        {/* ── Bulk multi-file uploader ── */}
+                        {formData.imgs.filter(Boolean).length < 10 && (
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2" sx={{ color: 'black', mb: 0.5 }}>
+                                    Add Images / Videos
+                                </Typography>
+                                <MultiFileUploader
+                                    disabled={submitting}
+                                    onFilesSelected={(files) => {
+                                        // Cap at 10 total
+                                        const existingCount = formData.imgs.filter(u => u && u !== 'pending_upload').length;
+                                        const allowed = Math.max(0, 10 - existingCount);
+                                        setBulkFiles(files.slice(0, allowed));
+                                    }}
+                                />
+                            </Box>
+                        )}
+
+                        {/* ── Single-slot uploaders (for manual URL entry or individual replacements) ── */}
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2" sx={{ color: 'black', mb: 0.5 }}>
+                                Or add individual image/video slots
+                            </Typography>
+                            {formData.imgs.map((url, index) => (
+                                <ImageUploader
+                                    key={index}
+                                    value={url}
+                                    index={index}
+                                    onChange={handleImageChange}
+                                    onRemove={handleRemoveImage}
+                                    pendingUploads={pendingUploads}
+                                    setPendingUploads={setPendingUploads}
+                                />
+                            ))}
+
+                            {formData.imgs.length < 10 && (
+                                <Button
+                                    onClick={handleAddImage}
+                                    sx={{ mt: 1 }}
+                                >
+                                    Add Another Image/Video Slot
+                                </Button>
+                            )}
+                        </Box>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseDialog}>Cancel</Button>

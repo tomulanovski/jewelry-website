@@ -1,11 +1,11 @@
 import { s3 } from '../config/aws.js';
 
-const uploadToS3 = async (fileData, filename) => {
+const uploadToS3 = async (fileData, filename, contentType = 'image/jpeg') => {
     const params = {
         Bucket: 'moms-jewelry',
         Key: filename,
         Body: fileData,
-        ContentType: 'image/jpeg'
+        ContentType: contentType
         // Removed ACL setting
     };
     
