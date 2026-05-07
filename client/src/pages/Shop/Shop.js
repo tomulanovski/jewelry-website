@@ -221,7 +221,7 @@ function Shop() {
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                       border: '1px solid transparent',
-                      transition: 'all 0.2s ease',
+                      transition: 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
                       '&:hover': {
                         transform: 'translateY(-4px)',
                         border: '1px solid #e3d9b1',
