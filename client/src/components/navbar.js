@@ -102,23 +102,23 @@ const NavBar = () => {
         <ListItem button component={Link} to="/" onClick={() => setMobileMenuOpen(false)}>
           <ListItemText primary="Home" sx={{ color: theme.palette.text.primary }} />
         </ListItem>
-        
-        {categories.map((category) => (
-          <ListItem 
-            button 
-            key={category.param || 'all'} 
-            onClick={() => handleMenuItemClick(category.param)}
-          >
-            <ListItemText 
-              primary={category.display} 
-              sx={{ color: theme.palette.text.primary }} 
-            />
-          </ListItem>
-        ))}
-        
+
         <ListItem button component={Link} to="/about" onClick={() => setMobileMenuOpen(false)}>
           <ListItemText primary="About" sx={{ color: theme.palette.text.primary }} />
         </ListItem>
+
+        {categories.map((category) => (
+          <ListItem
+            button
+            key={category.param || 'all'}
+            onClick={() => handleMenuItemClick(category.param)}
+          >
+            <ListItemText
+              primary={category.display}
+              sx={{ color: theme.palette.text.primary }}
+            />
+          </ListItem>
+        ))}
       </List>
     </Drawer>
   );
@@ -253,13 +253,22 @@ const NavBar = () => {
             alignItems: 'center',
             gap: 2
           }}>
-            <Button 
-              color="inherit" 
-              sx={{ color: theme.palette.text.primary }} 
-              component={Link} 
+            <Button
+              color="inherit"
+              sx={{ color: theme.palette.text.primary }}
+              component={Link}
               to="/"
             >
               Home
+            </Button>
+
+            <Button
+              color="inherit"
+              sx={{ color: theme.palette.text.primary }}
+              component={Link}
+              to="/about"
+            >
+              About
             </Button>
 
             <Button
@@ -271,15 +280,6 @@ const NavBar = () => {
               aria-haspopup="true"
             >
               Shop
-            </Button>
-
-            <Button 
-              color="inherit" 
-              sx={{ color: theme.palette.text.primary }} 
-              component={Link} 
-              to="/about"
-            >
-              About
             </Button>
 
             <IconButton 
