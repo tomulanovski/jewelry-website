@@ -1,1 +1,9 @@
 - need to do automatic email send when the order is complete
+- make receipt printible for my mom
+- make possible to upload more than one image or video at a time
+- change from render hosting cause render fails all the time
+- make all descriptions good
+- about page
+- add video of mom working 
+- let claude think what needed maybe fast loading of images and so on
+
