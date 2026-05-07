@@ -1,6 +1,6 @@
 import express from 'express';
 import db from '../db.js';
-
+import { isAuthenticated, isAdmin } from './AuthController.js';
 
 const router = express.Router();
 
@@ -70,7 +70,7 @@ router.get('/braclets', async (req, res) => {
 
 });
 
-router.post('/', async (req, res) => {
+router.post('/', isAuthenticated, isAdmin, async (req, res) => {
     console.log('Backend: Received POST request to /shop');
     console.log('Backend: Request body:', req.body);
     
@@ -127,7 +127,7 @@ router.post('/', async (req, res) => {
 });
 
 // Delete product
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
   try {
       const { id } = req.params;
       
@@ -165,7 +165,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Update product
-router.put('/:id', async (req, res) => {
+router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
   try {
       const { id } = req.params;
       const { title, description, price, quantity, materials, imgs, type } = req.body;

@@ -1,10 +1,11 @@
 import express from 'express';
 import db from '../db.js';
 import { sendOwnerNotification } from '../utils/email.js';
+import { isAuthenticated, isAdmin } from './AuthController.js';
 const router = express.Router();
 
 // Get all orders with full details (for admin dashboard)
-router.get('/admin/all', async (req, res) => {
+router.get('/admin/all', isAuthenticated, isAdmin, async (req, res) => {
     try {
         // Get all orders
         const ordersResult = await db.query(

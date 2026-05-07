@@ -307,19 +307,11 @@ Auto-renewal is configured automatically. Test it with:
 sudo certbot renew --dry-run
 ```
 
-### 7a. Enable secure cookies after HTTPS is live
+### 7a. Secure cookies in production
 
-Once SSL is working, open `server/index.js` and change:
+The session cookie is already configured to use `secure: process.env.NODE_ENV === 'production'` in `server/index.js`. As long as `NODE_ENV=production` is set in the server `.env` file (see [Section 8](#8-update-environment-variables)), secure cookies are enabled automatically once HTTPS is live — no manual code change needed.
 
-```js
-// Before
-secure: false,
-
-// After
-secure: true,
-```
-
-Then restart the PM2 process:
+Restart PM2 after updating `.env` if you haven't already:
 
 ```bash
 pm2 restart cjbijoux
@@ -352,6 +344,8 @@ AWS_BUCKET_NAME=your_s3_bucket_name
 # ── PayPal (unchanged from Render) ───────────────────────────────────────────
 PAYPAL_CLIENT_ID=your_paypal_client_id
 PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYPAL_TEST_ID=your_paypal_sandbox_client_id
+PAYPAL_TEST_SECRET=your_paypal_sandbox_client_secret
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 EMAIL_USER=your_email@gmail.com

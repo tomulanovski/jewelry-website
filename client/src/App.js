@@ -28,7 +28,7 @@ function App() {
     "client-id": process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PAYPAL_CLIENT_ID : process.env.REACT_APP_PAYPAL_TEST_ID,
     currency: "USD",
     intent: "capture",
-    debug: true  // for development
+    debug: process.env.NODE_ENV !== 'production'
   };
 
   //  to debug
