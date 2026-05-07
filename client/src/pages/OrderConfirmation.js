@@ -255,7 +255,14 @@ function OrderConfirmation() {
                 <Box sx={{ mt: 4, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Button
                         variant="outlined"
-                        onClick={() => generateReceipt(orderDetails, orderDetails.items)}
+                        onClick={() => {
+                            try {
+                                generateReceipt(orderDetails, orderDetails.items);
+                            } catch (err) {
+                                console.error('generateReceipt failed:', err);
+                                alert('Could not generate receipt. Please try again.');
+                            }
+                        }}
                         sx={{
                             borderColor: '#e3d9b1',
                             color: '#e3d9b1',

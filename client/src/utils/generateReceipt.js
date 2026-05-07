@@ -13,7 +13,15 @@ import { jsPDF } from 'jspdf';
  * @param {Array} orderItems - Array of { title, quantity, price } items for this order
  */
 export function generateReceipt(order, orderItems) {
-    const orderNumber = order.id ?? order.orderId;
+    if (!order.shipping) {
+        return;
+    }
+
+    const orderNumber = order.id ?? order.orderId ?? 'N/A';
+    if (orderNumber === 'N/A') {
+        console.warn('generateReceipt: order has no id or orderId; falling back to "N/A"');
+    }
+
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
     const GOLD = [180, 160, 110];   // muted gold — readable on white
@@ -66,7 +74,6 @@ export function generateReceipt(order, orderItems) {
         product: MARGIN,
         qty: MARGIN + CONTENT_W * 0.55,
         unit: MARGIN + CONTENT_W * 0.70,
-        subtotal: MARGIN + CONTENT_W * 0.85,
     };
 
     doc.setFillColor(240, 240, 240);
@@ -91,7 +98,14 @@ export function generateReceipt(order, orderItems) {
     doc.setFontSize(9);
     doc.setTextColor(...DARK_GRAY);
 
-    orderItems.forEach((item, idx) => {
+    const items = Array.isArray(orderItems) && orderItems.length > 0 ? orderItems : null;
+
+    if (!items) {
+        doc.text('No items found', COL.product + 4, y);
+        y += 18;
+    }
+
+    (items ?? []).forEach((item, idx) => {
         if (idx % 2 === 1) {
             doc.setFillColor(249, 249, 249);
             doc.rect(MARGIN, y - 10, CONTENT_W, 16, 'F');
@@ -133,13 +147,13 @@ export function generateReceipt(order, orderItems) {
         y += 14;
     };
 
-    printRow('Subtotal:', `$${order.subtotal.toFixed(2)}`);
+    printRow('Subtotal:', `$${(order.subtotal ?? 0).toFixed(2)}`);
     printRow('Shipping:', shippingCost);
     y += 4;
     doc.setDrawColor(...LIGHT_GRAY);
     doc.line(totalsX, y, PAGE_W - MARGIN, y);
     y += 10;
-    printRow('Total:', `$${order.total.toFixed(2)}`, true);
+    printRow('Total:', `$${(order.total ?? 0).toFixed(2)}`, true);
 
     y += 20;
 
