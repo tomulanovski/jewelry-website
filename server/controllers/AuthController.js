@@ -198,4 +198,5 @@ router.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
+export { isAuthenticated, isAdmin };
 export default router;

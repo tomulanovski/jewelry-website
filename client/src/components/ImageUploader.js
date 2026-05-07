@@ -116,7 +116,7 @@ const ImageUploader = ({ value = '', index, onChange, onRemove, pendingUploads, 
 // ─────────────────────────────────────────────────────────────────────────────
 export const MultiFileUploader = ({ onFilesSelected, disabled = false }) => {
     const inputRef = useRef(null);
-    const [previews, setPreviews] = useState([]); // [{ url, name, isVideo }]
+    const [previews, setPreviews] = useState([]); // [{ url, name, isVideo, file }]
 
     const handleChange = (event) => {
         const files = Array.from(event.target.files);
@@ -129,6 +129,7 @@ export const MultiFileUploader = ({ onFilesSelected, disabled = false }) => {
             url: URL.createObjectURL(file),
             name: file.name,
             isVideo: file.type.startsWith('video/'),
+            file,
         }));
         setPreviews(newPreviews);
         onFilesSelected(files);
@@ -141,6 +142,7 @@ export const MultiFileUploader = ({ onFilesSelected, disabled = false }) => {
         const updated = previews.filter((_, i) => i !== idx);
         if (previews[idx]?.url.startsWith('blob:')) URL.revokeObjectURL(previews[idx].url);
         setPreviews(updated);
+        onFilesSelected(updated.map(p => p.file));
     };
 
     return (

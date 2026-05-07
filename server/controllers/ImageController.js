@@ -4,7 +4,17 @@ import { uploadToS3, deleteFromS3 } from '../utils/s3.js';
 import db from '../db.js';
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image and video files are allowed'), false);
+        }
+    }
+});
 
 // Helper: derive a safe file extension from the mime type
 const extFromMime = (mimetype) => {
@@ -21,7 +31,14 @@ const extFromMime = (mimetype) => {
 };
 
 // Upload multiple images/videos and return an array of URLs
-router.post('/upload', upload.array('images', 10), async (req, res) => {
+router.post('/upload', (req, res, next) => {
+    upload.array('images', 10)(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         const files = req.files;
         const { productId, imageIndex } = req.body;
@@ -41,15 +58,20 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
                 return uploadToS3(file.buffer, filename, file.mimetype);
             });
 
-            const urls = await Promise.all(uploadPromises);
-            console.log('Multi-upload successful, URLs:', urls);
+            const results = await Promise.allSettled(uploadPromises);
+            const urls = results
+                .filter(r => r.status === 'fulfilled')
+                .map(r => r.value);
+            const failedCount = results.filter(r => r.status === 'rejected').length;
+            console.log('Multi-upload complete, URLs:', urls, 'failed:', failedCount);
 
             return res.json({
                 success: true,
                 urls,
                 // Backward-compat alias for callers that still read imageUrl
                 imageUrl: urls[0],
-                message: `${urls.length} file(s) uploaded successfully`
+                failedCount,
+                message: `${urls.length} file(s) uploaded successfully${failedCount ? `, ${failedCount} failed` : ''}`
             });
         }
 

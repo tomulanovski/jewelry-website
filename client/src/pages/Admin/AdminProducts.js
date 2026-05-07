@@ -383,13 +383,6 @@ export const AdminProducts = () => {
     };
 
     const handleCloseDialog = () => {
-        // Clean up any created object URLs to prevent memory leaks
-        Object.values(pendingUploads).forEach(file => {
-            if (file && typeof file === 'string' && file.startsWith('blob:')) {
-                URL.revokeObjectURL(file);
-            }
-        });
-        
         setOpenDialog(false);
         setPendingUploads({});
         setBulkFiles([]);

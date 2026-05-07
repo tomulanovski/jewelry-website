@@ -4,7 +4,7 @@ import db from './db.js';
 import dotenv from 'dotenv';
 import passport from 'passport';
 import session from 'express-session';
-import authRoutes from './controllers/AuthController.js';
+import authRoutes, { isAuthenticated, isAdmin } from './controllers/AuthController.js';
 import cartRoutes from './controllers/CartRoutes.js';
 import orderRoutes from './controllers/OrderController.js';
 import shopRoutes from './controllers/ShopController.js';
@@ -53,7 +53,7 @@ app.use('/orders', orderRoutes);
 app.use('/shop', shopRoutes);
 app.use('/product',productRoutes);
 app.use('/payment',paymentRoutes);
-app.use('/images', imageRoutes);
+app.use('/images', isAuthenticated, isAdmin, imageRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
