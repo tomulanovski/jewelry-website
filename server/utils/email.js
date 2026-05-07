@@ -14,11 +14,18 @@ function createTransporter() {
   });
 }
 
+// Fix #2: module-level singleton — created once, reused on every send
+const transporter = createTransporter();
+
 function formatAddress(shippingAddress) {
   if (!shippingAddress) return 'N/A';
-  const addr = typeof shippingAddress === 'string'
-    ? JSON.parse(shippingAddress)
-    : shippingAddress;
+  // Fix #1: guard against malformed JSON in the DB
+  let addr;
+  try {
+    addr = typeof shippingAddress === 'string' ? JSON.parse(shippingAddress) : shippingAddress;
+  } catch {
+    return typeof shippingAddress === 'string' ? shippingAddress : JSON.stringify(shippingAddress);
+  }
   const parts = [
     addr.address,
     addr.apartment,
@@ -33,7 +40,7 @@ function formatItemsHtml(items) {
   if (!items || items.length === 0) return '<p>No items</p>';
   const rows = items.map(item => {
     const name = item.title || item.name || `Product #${item.product_id || item.id}`;
-    const qty = item.quantity;
+    const qty = Number(item.quantity || 0);
     const price = Number(item.price || item.price_at_time || 0).toFixed(2);
     const lineTotal = (qty * Number(item.price || item.price_at_time || 0)).toFixed(2);
     return `
@@ -59,7 +66,7 @@ function formatItemsHtml(items) {
 }
 
 export async function sendOrderConfirmation(order, items, customerEmail) {
-  const transporter = createTransporter();
+  // Fix #2: use module-level singleton
   if (!transporter) {
     console.log('[email] EMAIL_USER or EMAIL_APP_PASSWORD not set — skipping customer confirmation email.');
     return;
@@ -135,11 +142,16 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
 </body>
 </html>`;
 
+  // Fix #3: plain-text fallback for deliverability
+  const itemLines = items.map(i => `- ${i.title || i.name || 'Item'} x${Number(i.quantity || 0)} @ $${Number(i.price || i.price_at_time || 0).toFixed(2)}`).join('\n');
+  const text = `Thank you for your order!\n\nOrder #${orderNumber}\n\n${itemLines}\n\nTotal: $${total}\nShip to: ${address}\n\nYour order will be dispatched within 1 week.\n\nWith warmth, Catherine & CJbijoux`;
+
   try {
     await transporter.sendMail({
       from: `"CJbijoux" <${process.env.EMAIL_USER}>`,
       to: customerEmail,
       subject: `Order Confirmed — CJbijoux #${orderNumber}`,
+      text,
       html
     });
     console.log(`[email] Order confirmation sent to ${customerEmail} for order #${orderNumber}`);
@@ -149,7 +161,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
 }
 
 export async function sendOwnerNotification(order, items) {
-  const transporter = createTransporter();
+  // Fix #2: use module-level singleton
   if (!transporter) {
     console.log('[email] EMAIL_USER or EMAIL_APP_PASSWORD not set — skipping owner notification email.');
     return;
@@ -225,11 +237,16 @@ export async function sendOwnerNotification(order, items) {
 </body>
 </html>`;
 
+  // Fix #3: plain-text fallback for deliverability
+  const ownerItemLines = items.map(i => `- ${i.title || i.name || 'Item'} x${Number(i.quantity || 0)} @ $${Number(i.price || i.price_at_time || 0).toFixed(2)}`).join('\n');
+  const ownerText = `New order received!\n\nOrder #${orderNumber}\nCustomer: ${customerName} <${customerEmail}>\n\n${ownerItemLines}\n\nTotal: $${total}\nShip to: ${address}`;
+
   try {
     await transporter.sendMail({
       from: `"CJbijoux Orders" <${process.env.EMAIL_USER}>`,
       to: ownerEmail,
       subject: `New Order #${orderNumber} — CJbijoux`,
+      text: ownerText,
       html
     });
     console.log(`[email] Owner notification sent for order #${orderNumber}`);

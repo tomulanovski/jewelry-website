@@ -117,7 +117,6 @@ router.post('/create-order', async (req, res) => {
     );
 
     res.json(order.data);
-    // res.json({ id: order.data.id });
   } catch (error) {
     console.error('Detailed error:', error.response?.data || error);
     res.status(500).json({ 
