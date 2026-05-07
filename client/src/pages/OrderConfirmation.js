@@ -255,7 +255,7 @@ function OrderConfirmation() {
                 <Box sx={{ mt: 4, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Button
                         variant="outlined"
-                        onClick={() => generateReceipt(orderDetails, id)}
+                        onClick={() => generateReceipt(orderDetails, orderDetails.items)}
                         sx={{
                             borderColor: '#e3d9b1',
                             color: '#e3d9b1',

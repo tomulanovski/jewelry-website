@@ -5,14 +5,15 @@ import { jsPDF } from 'jspdf';
  *
  * @param {Object} order - The order object from orderDetails (location.state.orderDetails)
  *   Expected shape:
- *     order.items          - Array of { title, quantity, price }
+ *     order.id             - The order ID / number
  *     order.subtotal       - Number
  *     order.total          - Number
  *     order.shippingMethod - 'express' | 'standard'
  *     order.shipping       - { firstName, lastName, address, apartment, city, postalCode, country }
- * @param {string|number} orderNumber - The order ID (from useParams id)
+ * @param {Array} orderItems - Array of { title, quantity, price } items for this order
  */
-export function generateReceipt(order, orderNumber) {
+export function generateReceipt(order, orderItems) {
+    const orderNumber = order.id ?? order.orderId;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
     const GOLD = [180, 160, 110];   // muted gold — readable on white
@@ -90,7 +91,7 @@ export function generateReceipt(order, orderNumber) {
     doc.setFontSize(9);
     doc.setTextColor(...DARK_GRAY);
 
-    order.items.forEach((item, idx) => {
+    orderItems.forEach((item, idx) => {
         if (idx % 2 === 1) {
             doc.setFillColor(249, 249, 249);
             doc.rect(MARGIN, y - 10, CONTENT_W, 16, 'F');
