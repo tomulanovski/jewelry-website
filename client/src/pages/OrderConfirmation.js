@@ -156,36 +156,40 @@ function OrderConfirmation() {
                             <Typography variant="h6" gutterBottom>
                                 Shipping Details
                             </Typography>
-                            <Typography variant="body2">
-                                {orderDetails.shipping.firstName} {orderDetails.shipping.lastName}
-                            </Typography>
-                            <Typography variant="body2">
-                                {orderDetails.shipping.email}
-                            </Typography>
-                            <Typography variant="body2">
-                                {orderDetails.shipping.phone}
-                            </Typography>
-                            <Typography variant="body2" sx={{ mt: 2 }}>
-                                {orderDetails.shipping.address}
-                                {orderDetails.shipping.apartment && `, ${orderDetails.shipping.apartment}`}
-                            </Typography>
-                            <Typography variant="body2">
-                                {orderDetails.shipping.city}, {orderDetails.shipping.postalCode}
-                            </Typography>
-                            <Typography variant="body2">
-                                {orderDetails.shipping.country}
-                            </Typography>
-                            
-                            <Box sx={{ mt: 2 }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Shipping Method:
-                                </Typography>
-                                <Typography variant="body2">
-                                    {orderDetails.shippingMethod === 'express' 
-                                        ? 'Express Shipping' 
-                                        : 'Standard Shipping'}
-                                </Typography>
-                            </Box>
+                            {orderDetails.shipping && (
+                                <>
+                                    <Typography variant="body2">
+                                        {orderDetails.shipping.firstName} {orderDetails.shipping.lastName}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        {orderDetails.shipping.email}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        {orderDetails.shipping.phone}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 2 }}>
+                                        {orderDetails.shipping.address}
+                                        {orderDetails.shipping.apartment && `, ${orderDetails.shipping.apartment}`}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        {orderDetails.shipping.city}, {orderDetails.shipping.postalCode}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        {orderDetails.shipping.country}
+                                    </Typography>
+
+                                    <Box sx={{ mt: 2 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Shipping Method:
+                                        </Typography>
+                                        <Typography variant="body2">
+                                            {orderDetails.shippingMethod === 'express'
+                                                ? 'Express Shipping'
+                                                : 'Standard Shipping'}
+                                        </Typography>
+                                    </Box>
+                                </>
+                            )}
                         </Paper>
                     </Grid>
 
@@ -204,7 +208,7 @@ function OrderConfirmation() {
                                 Order Summary
                             </Typography>
                             
-                            {orderDetails.items.map((item) => (
+                            {(orderDetails.items ?? []).map((item) => (
                                 <Box 
                                     key={item.id}
                                     sx={{
@@ -227,7 +231,7 @@ function OrderConfirmation() {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                 <Typography variant="body2">Subtotal:</Typography>
                                 <Typography variant="body2">
-                                    ${orderDetails.subtotal.toFixed(2)}
+                                    ${(orderDetails.subtotal ?? 0).toFixed(2)}
                                 </Typography>
                             </Box>
                             
@@ -245,7 +249,7 @@ function OrderConfirmation() {
                                     Total:
                                 </Typography>
                                 <Typography variant="subtitle1" fontWeight="bold">
-                                    ${orderDetails.total.toFixed(2)}
+                                    ${(orderDetails.total ?? 0).toFixed(2)}
                                 </Typography>
                             </Box>
                         </Paper>
