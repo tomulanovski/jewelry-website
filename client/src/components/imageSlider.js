@@ -21,14 +21,14 @@ function ImageCarousel({ items, width = '100%' }) {
         swipe
       >
         {items.map((item, index) => (
-          <CarouselItem key={index} item={item} isMobile={isMobile} />
+          <CarouselItem key={index} item={item} isMobile={isMobile} index={index} />
         ))}
       </Carousel>
     </Box>
   );
 }
 
-const CarouselItem = ({ item, isMobile }) => (
+const CarouselItem = ({ item, isMobile, index }) => (
   <Paper elevation={3} sx={{ position: 'relative', borderRadius: 4, overflow: 'hidden' }}>
     <Box
       component="div"
@@ -43,6 +43,7 @@ const CarouselItem = ({ item, isMobile }) => (
         component="img"
         src={item.image}
         alt={item.title}
+        loading={index === 0 ? 'eager' : 'lazy'}
         sx={{
           width: '100%',
           height: '100%',
