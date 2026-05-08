@@ -90,18 +90,6 @@ function Footer() {
                 mb: 0.5,
               }}
             >
-              CJbijoux
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: GOLD,
-                letterSpacing: "0.08em",
-                fontWeight: 500,
-                mb: 1,
-                fontSize: "0.95rem",
-              }}
-            >
               Catherine Ulanovski
             </Typography>
             <Typography
@@ -114,7 +102,7 @@ function Footer() {
                 mb: 1,
               }}
             >
-              Handcrafted jewelry from Kadima, Israel
+              Handcrafted jewelry
             </Typography>
             <Typography
               variant="body2"
@@ -227,18 +215,7 @@ function Footer() {
               letterSpacing: "0.04em",
             }}
           >
-            &copy; 2025 CJbijoux &middot; Catherine Ulanovski
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: GOLD,
-              opacity: 0.5,
-              fontSize: "0.75rem",
-              letterSpacing: "0.06em",
-            }}
-          >
-            Handmade in Israel
+            &copy; 2025 Catherine Ulanovski
           </Typography>
         </Box>
       </Box>

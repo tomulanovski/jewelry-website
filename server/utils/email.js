@@ -88,7 +88,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
         <!-- Header -->
         <tr>
           <td style="background:#3a2e28;padding:28px 40px;text-align:center;">
-            <h1 style="margin:0;color:#f7e8d4;font-size:26px;letter-spacing:2px;font-weight:400;">CJbijoux</h1>
+            <h1 style="margin:0;color:#f7e8d4;font-size:26px;letter-spacing:2px;font-weight:400;">Catherine Ulanovski</h1>
             <p style="margin:6px 0 0;color:#c8a98a;font-size:13px;letter-spacing:1px;">Handmade Jewelry by Catherine Ulanovski</p>
           </td>
         </tr>
@@ -133,7 +133,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
         <!-- Footer -->
         <tr>
           <td style="background:#f7f0eb;padding:20px 40px;text-align:center;border-top:1px solid #e8ddd5;">
-            <p style="margin:0;font-size:12px;color:#a08878;">With warmth, Catherine &amp; CJbijoux</p>
+            <p style="margin:0;font-size:12px;color:#a08878;">With warmth, Catherine</p>
           </td>
         </tr>
       </table>
@@ -144,13 +144,13 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
 
   // Fix #3: plain-text fallback for deliverability
   const itemLines = items.map(i => `- ${i.title || i.name || 'Item'} x${Number(i.quantity || 0)} @ $${Number(i.price || i.price_at_time || 0).toFixed(2)}`).join('\n');
-  const text = `Thank you for your order!\n\nOrder #${orderNumber}\n\n${itemLines}\n\nTotal: $${total}\nShip to: ${address}\n\nYour order will be dispatched within 1 week.\n\nWith warmth, Catherine & CJbijoux`;
+  const text = `Thank you for your order!\n\nOrder #${orderNumber}\n\n${itemLines}\n\nTotal: $${total}\nShip to: ${address}\n\nYour order will be dispatched within 1 week.\n\nWith warmth, Catherine`;
 
   try {
     await transporter.sendMail({
-      from: `"CJbijoux" <${process.env.EMAIL_USER}>`,
+      from: `"Catherine Ulanovski" <${process.env.EMAIL_USER}>`,
       to: customerEmail,
-      subject: `Order Confirmed — CJbijoux #${orderNumber}`,
+      subject: `Order Confirmed #${orderNumber}`,
       text,
       html
     });
@@ -191,7 +191,7 @@ export async function sendOwnerNotification(order, items) {
         <!-- Header -->
         <tr>
           <td style="background:#3a2e28;padding:24px 40px;text-align:center;">
-            <h1 style="margin:0;color:#f7e8d4;font-size:22px;letter-spacing:2px;font-weight:400;">CJbijoux — New Order</h1>
+            <h1 style="margin:0;color:#f7e8d4;font-size:22px;letter-spacing:2px;font-weight:400;">New Order</h1>
           </td>
         </tr>
         <!-- Body -->
@@ -228,7 +228,7 @@ export async function sendOwnerNotification(order, items) {
         <!-- Footer -->
         <tr>
           <td style="background:#f7f0eb;padding:16px 40px;text-align:center;border-top:1px solid #e8ddd5;">
-            <p style="margin:0;font-size:12px;color:#a08878;">CJbijoux Order Management</p>
+            <p style="margin:0;font-size:12px;color:#a08878;">Order Management</p>
           </td>
         </tr>
       </table>
@@ -243,9 +243,9 @@ export async function sendOwnerNotification(order, items) {
 
   try {
     await transporter.sendMail({
-      from: `"CJbijoux Orders" <${process.env.EMAIL_USER}>`,
+      from: `"Catherine Ulanovski" <${process.env.EMAIL_USER}>`,
       to: ownerEmail,
-      subject: `New Order #${orderNumber} — CJbijoux`,
+      subject: `New Order #${orderNumber}`,
       text: ownerText,
       html
     });

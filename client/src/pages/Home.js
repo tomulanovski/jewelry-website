@@ -66,7 +66,7 @@ function Home() {
             userSelect: "none",
           }}
         >
-          Handcrafted in Israel&nbsp;&nbsp;·&nbsp;&nbsp;Made to Order&nbsp;&nbsp;·&nbsp;&nbsp;Each Piece Unique
+          Handcrafted&nbsp;&nbsp;·&nbsp;&nbsp;Made to Order&nbsp;&nbsp;·&nbsp;&nbsp;Each Piece Unique
         </Typography>
       </Box>
 
@@ -113,21 +113,6 @@ function Home() {
           }}
         >
           {/* label */}
-          <Typography
-            className={stylesReady ? "cj-panel-1" : ""}
-            sx={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "0.65rem",
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: `rgba(227,217,177,0.55)`,
-              mb: 2.5,
-              fontVariant: "small-caps",
-            }}
-          >
-            CJbijoux
-          </Typography>
-
           {/* headline */}
           <Typography
             className={stylesReady ? "cj-panel-2" : ""}

@@ -169,7 +169,7 @@ export default function About() {
             mb: 3,
           }}
         >
-          Artisan Jeweler · Kadima, Israel
+          Artisan Jeweler
         </Typography>
 
         <Typography

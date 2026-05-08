@@ -38,7 +38,7 @@ export function generateReceipt(order, orderItems) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
     doc.setTextColor(...GOLD);
-    doc.text('CJbijoux', MARGIN, y);
+    doc.text('Catherine Ulanovski', MARGIN, y);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -191,12 +191,12 @@ export function generateReceipt(order, orderItems) {
     doc.setFontSize(9);
     doc.setTextColor(...DARK_GRAY);
     doc.text(
-        'Thank you for your order — CJbijoux',
+        'Thank you for your order — Catherine Ulanovski',
         PAGE_W / 2,
         pageH - 34,
         { align: 'center' }
     );
 
     // ── Save ─────────────────────────────────────────────────────────────────
-    doc.save(`CJbijoux-receipt-${orderNumber}.pdf`);
+    doc.save(`receipt-${orderNumber}.pdf`);
 }
