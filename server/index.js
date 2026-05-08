@@ -48,8 +48,8 @@ app.use(session({
   cookie: {
     maxAge: 24 * 60 * 60 * 1000, // 24H session
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',  // true in production (HTTPS), false in development
-    sameSite: 'lax'
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // 'none' required for cross-origin cookie on Render
   }
 }));
 
