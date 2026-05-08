@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import NavBar from '../../components/navbar';
 import api from '../../services/api';
+import { generateOrderPDF } from '../../utils/generateOrderPDF';
 
 export const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -141,8 +142,22 @@ export const AdminOrders = () => {
                                         size="small"
                                         variant="outlined"
                                         onClick={() => handleViewDetails(order)}
+                                        sx={{ mr: 1 }}
                                     >
                                         View Details
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => {
+                                            try {
+                                                generateOrderPDF(order);
+                                            } catch (err) {
+                                                alert('Failed to generate PDF: ' + err.message);
+                                            }
+                                        }}
+                                    >
+                                        Download
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -245,7 +260,19 @@ export const AdminOrders = () => {
                         </Box>
                     )}
                 </DialogContent>
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => {
+                            try {
+                                generateOrderPDF(selectedOrder);
+                            } catch (err) {
+                                alert('Failed to generate PDF: ' + err.message);
+                            }
+                        }}
+                    >
+                        Download PDF
+                    </Button>
                     <Button onClick={() => setOpenDialog(false)}>Close</Button>
                 </Box>
             </Dialog>
