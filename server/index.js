@@ -4,6 +4,7 @@ import db from './db.js';
 import dotenv from 'dotenv';
 import passport from 'passport';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import authRoutes, { isAuthenticated, isAdmin } from './controllers/AuthController.js';
 import cartRoutes from './controllers/CartRoutes.js';
 import orderRoutes from './controllers/OrderController.js';
@@ -11,6 +12,8 @@ import shopRoutes from './controllers/ShopController.js';
 import productRoutes from './controllers/ProductController.js'
 import paymentRoutes from './controllers/PaymentRoutes.js'
 import imageRoutes from './controllers/ImageController.js';
+
+const PgStore = connectPgSimple(session);
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -32,6 +35,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
+  store: new PgStore({
+    conString: process.env.DB_URL || undefined,
+    conObject: process.env.DB_URL ? undefined : {
+      user: process.env.DB_USER,
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      password: process.env.DB_PASS,
+      port: process.env.DB_PORT
+    },
+    createTableIfMissing: true,
+    tableName: 'session'
+  }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -39,7 +54,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24H session
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',  // true in production (HTTPS), false in development
-    sameSite: 'lax'  
+    sameSite: 'lax'
   }
 }));
 

@@ -5,14 +5,14 @@ dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const db = new pg.Client(
-    isProduction 
+const db = new pg.Pool(
+    isProduction
     ? {
         connectionString: process.env.DB_URL,
         ssl: {
             rejectUnauthorized: false
         }
-    } 
+    }
     : {
         user: process.env.DB_USER,
         host: process.env.DB_HOST,
@@ -22,8 +22,7 @@ const db = new pg.Client(
     }
 );
 
-db.connect()
-    .then(() => console.log(`Connected to PostgreSQL database in ${isProduction ? 'production' : 'development'} mode`))
-    .catch(err => console.error('Connection error', err.stack));
+db.on('connect', () => console.log(`Connected to PostgreSQL database in ${isProduction ? 'production' : 'development'} mode`));
+db.on('error', (err) => console.error('PostgreSQL pool error', err.stack));
 
 export default db;
