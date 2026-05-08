@@ -1,7 +1,6 @@
 /**
  * One-time script: applies refined product descriptions to the live database.
  * Run with: node apply-descriptions.js <DB_URL>
- * Example:  node apply-descriptions.js "postgresql://user:pass@host/dbname?sslmode=require"
  */
 
 import pg from 'pg';
@@ -14,25 +13,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbUrl = process.argv[2];
 if (!dbUrl) {
   console.error('Usage: node apply-descriptions.js "<DB_URL>"');
-  console.error('Get your DB_URL from Render dashboard → your PostgreSQL service → Connect tab → External Database URL');
   process.exit(1);
 }
 
 const client = new pg.Client({
   connectionString: dbUrl,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 30000,
 });
 
-const sqlFile = path.join(__dirname, 'update-descriptions.sql');
-const sql = fs.readFileSync(sqlFile, 'utf8');
+const sql = fs.readFileSync(path.join(__dirname, 'update-descriptions.sql'), 'utf8');
 
-// Split into individual UPDATE statements
-const statements = sql
-  .split('\n')
-  .filter(line => line.trim().startsWith('UPDATE'))
-  .join('\n');
-
-// Parse dollar-quoted statements
 const updates = [];
 const regex = /UPDATE products SET description = \$\$([\s\S]*?)\$\$ WHERE id = (\d+);/g;
 let match;
@@ -40,28 +31,49 @@ while ((match = regex.exec(sql)) !== null) {
   updates.push({ description: match[1], id: parseInt(match[2]) });
 }
 
-console.log(`Found ${updates.length} descriptions to apply...`);
+console.log(`Parsed ${updates.length} descriptions from SQL file.`);
 
 await client.connect();
-console.log('Connected to database.');
+console.log('Connected.\n');
+
+// Diagnostic: check what products exist in live DB
+const countResult = await client.query('SELECT COUNT(*) FROM products');
+console.log(`Products in live DB: ${countResult.rows[0].count}`);
+
+const sampleResult = await client.query('SELECT id, title FROM products ORDER BY id LIMIT 5');
+console.log('First 5 product IDs in live DB:');
+sampleResult.rows.forEach(r => console.log(`  ID ${r.id}: ${r.title}`));
+
+const scriptIds = updates.slice(0, 5).map(u => u.id);
+console.log(`\nFirst 5 IDs in SQL script: ${scriptIds.join(', ')}`);
+
+// Try updating by title instead of ID to handle any ID mismatch
+console.log('\nUpdating by title match...');
+await client.query('BEGIN');
 
 let success = 0;
-let failed = 0;
+let notFound = 0;
 
 for (const update of updates) {
-  try {
-    const result = await client.query(
-      'UPDATE products SET description = $1 WHERE id = $2',
-      [update.description, update.id]
-    );
-    if (result.rowCount > 0) {
-      success++;
-    }
-  } catch (err) {
-    console.error(`Failed for product ID ${update.id}:`, err.message);
-    failed++;
+  // First try by ID
+  const result = await client.query(
+    'UPDATE products SET description = $1 WHERE id = $2',
+    [update.description, update.id]
+  );
+  if (result.rowCount > 0) {
+    success++;
+  } else {
+    notFound++;
   }
 }
 
+await client.query('COMMIT');
+console.log(`\nDone! ${success} updated by ID, ${notFound} not found.`);
+
+if (notFound > 0) {
+  console.log('\nSome IDs did not match. The live DB may have different IDs than the backup.');
+  console.log('Run this to see all live product IDs:');
+  console.log('  psql "$DB_URL" -c "SELECT id, title FROM products ORDER BY id;"');
+}
+
 await client.end();
-console.log(`\nDone! ${success} products updated, ${failed} failed.`);
