@@ -20,6 +20,8 @@ dotenv.config(); // Load environment variables from .env file
 const app = express();
 const PORT = process.env.PORT;
 
+app.set('trust proxy', 1); // required for secure cookies behind Render's load balancer
+
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
