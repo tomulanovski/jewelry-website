@@ -36,14 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
   store: new PgStore({
-    conString: process.env.DB_URL || undefined,
-    conObject: process.env.DB_URL ? undefined : {
-      user: process.env.DB_USER,
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      password: process.env.DB_PASS,
-      port: process.env.DB_PORT
-    },
+    pool: db,
     createTableIfMissing: true,
     tableName: 'session'
   }),
