@@ -69,7 +69,7 @@ const NavBar = () => {
       if (user?.isAdmin) {
         navigate('/admin');
       } else {
-        navigate('/account');
+        navigate('/cart'); // there is no customer account page
       }
     } else {
       navigate('/register');
@@ -118,7 +118,7 @@ const NavBar = () => {
             <ListItemText primary="Paintings" />
           </ListItemButton>
           <ListItemButton onClick={handleAccountClick} sx={drawerItem}>
-            <ListItemText primary={isAuthenticated ? 'My Account' : 'Sign In'} />
+            <ListItemText primary={isAuthenticated ? (user?.isAdmin ? 'Admin' : 'My Cart') : 'Sign In'} />
           </ListItemButton>
         </List>
       </Box>
