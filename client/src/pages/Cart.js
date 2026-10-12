@@ -2,288 +2,199 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/navbar';
 import { useCart } from '../contexts/CartContext';
-import { 
- Box, Typography, Button, Divider, Paper,
- IconButton, Alert, Snackbar, FormControlLabel, Checkbox 
+import {
+  Box, Typography, Button, Divider, Paper,
+  IconButton, Alert, Snackbar, FormControlLabel, Checkbox
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import QuantityInput from '../components/quantityInput';
+import { formatPrice } from '../components/ProductCard';
+import { brand, labelStyle } from '../theme';
 
 function Cart() {
-    const { 
-      items, 
-      getTotalItems, 
-      getTotalPrice, 
-      updateQuantity, 
-      removeItem, 
-      notification, 
-      clearNotification,
-      setShippingMethod
-    } = useCart();
-    const navigate = useNavigate();
-    const [expressShipping, setExpressShipping] = useState(false);
-  
-    const handleProductClick = (product) => {
-        navigate(`/product/${product.id}`)
-    };
-  
-    const handleQuantityChange = (item) => (event, newValue) => {
-        if (newValue !== null) {
-            const value = Math.max(1, Math.min(newValue, item.stock_quantity));
-            updateQuantity(item.id,value)
-        }
-    };
-  
-    const getStockWarning = (item) => {
-      const availableStock = item.stock_quantity - item.quantity;
-      if (availableStock <= 5) {
-        return `Only ${availableStock} more available in stock`;
-      }
-      return null;
-    };
+  const {
+    items,
+    getTotalItems,
+    getTotalPrice,
+    updateQuantity,
+    removeItem,
+    notification,
+    clearNotification,
+    setShippingMethod
+  } = useCart();
+  const navigate = useNavigate();
+  const [expressShipping, setExpressShipping] = useState(false);
 
-   const handleCheckout = () => {
-       setShippingMethod(expressShipping ? 'express' : 'standard');
-       navigate('/checkout');
-   };
+  const handleProductClick = (product) => {
+    navigate(`/product/${product.id}`);
+  };
 
-   return (
-       <Box>
-           <NavBar />
-           <Box sx={{ 
-               p: 4, 
-               maxWidth: '1200px', 
-               margin: '0 auto',
-               minHeight: '80vh',
-               display: 'flex',
-               flexDirection: 'column'
-           }}>
-               <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>Shopping Cart</Typography>
+  const handleQuantityChange = (item) => (event, newValue) => {
+    if (newValue !== null) {
+      const value = Math.max(1, Math.min(newValue, item.stock_quantity));
+      updateQuantity(item.id, value);
+    }
+  };
 
-               {items.length === 0 ? (
-                   <Box sx={{ 
-                       display: 'flex', 
-                       flexDirection: 'column', 
-                       alignItems: 'center',
-                       justifyContent: 'center',
-                       gap: 2,
-                       flex: 1
-                   }}>
-                       <Typography variant="h6" color="text.secondary">Your cart is empty</Typography>
-                       <Button 
-                           variant="contained"
-                           onClick={() => navigate('/shop')}
-                           sx={{ 
-                               backgroundColor: '#333',
-                               '&:hover': { 
-                                   backgroundColor: '#515151',
-                                   boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                               }
-                           }}
-                       >
-                           Continue Shopping
-                       </Button>
-                   </Box>
-               ) : (
-                   <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
-                       <Box sx={{ flex: '1' }}>
-                           {items.map(item => {
-                               const stockWarning = getStockWarning(item);
-                               return (
-                                   <Paper 
-                                       key={item.id} 
-                                       elevation={0}
-                                       sx={{ 
-                                           mb: 2,
-                                           p: 2,
-                                           border: '1px solid #eee',
-                                           borderRadius: 2,
-                                           '&:hover': {
-                                               boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                                           }
-                                       }}
-                                   >
-                                       <Box sx={{ display: 'flex', gap: 3 }}>
-                                           <Box 
-                                               onClick={() => handleProductClick(item)} // i pass item here so it handle it bad in product page becuase in context it checks for its quantity and if i pass thru shop it check product quantity and not item quantity. i want it to check product and not item so i need to have a way to pass product 
-                                               sx={{ 
-                                                   display: 'flex', 
-                                                   gap: 3,
-                                                   flex: 1,
-                                                   cursor: 'pointer' 
-                                               }}
-                                           >
-                                               {item.image1 && (
-                                                   <img 
-                                                       src={item.image1} 
-                                                       alt={item.title} 
-                                                       style={{ 
-                                                           width: '120px', 
-                                                           height: '120px', 
-                                                           objectFit: 'cover',
-                                                           borderRadius: '8px'
-                                                       }} 
-                                                       loading="lazy"
-                                                   />
-                                               )}
-                                               <Box>
-                                                   <Typography 
-                                                       variant="h6"
-                                                       sx={{ 
-                                                           fontWeight: 500,
-                                                           '&:hover': { color: '#666' }
-                                                       }}
-                                                   >
-                                                       {item.title}
-                                                   </Typography>
-                                                   <Typography 
-                                                       variant="h6" 
-                                                       color="text.secondary"
-                                                       sx={{ mt: 1, fontWeight: 'bold' }}
-                                                   >
-                                                       ${item.price}
-                                                   </Typography>
-                                                   <Typography variant="body2" sx={{ mt: 1 }}>
-                                                       Total: ${(item.price * item.quantity).toFixed(2)}
-                                                   </Typography>
-                                                   {stockWarning && (
-                                                       <Alert severity="warning" sx={{ mt: 1, py: 0 }}>
-                                                           {stockWarning}
-                                                       </Alert>
-                                                   )}
-                                               </Box>
-                                           </Box>
+  const getStockWarning = (item) => {
+    const availableStock = item.stock_quantity - item.quantity;
+    if (availableStock <= 5) {
+      return availableStock === 0 ? 'No more available' : `Only ${availableStock} more available`;
+    }
+    return null;
+  };
 
-                                           <Box sx={{ 
-                                               display: 'flex', 
-                                               flexDirection: 'column', 
-                                               alignItems: 'flex-end',
-                                               gap: 1
-                                           }}>
-                                               <Box sx={{ width: '120px' }}>
-                                               <QuantityInput
-                                                    value={item.quantity}
-                                                    onChange={handleQuantityChange(item)}
-                                                    min={1}
-                                                    max={item.stock_quantity}
-                                                    aria-label="Quantity input"
-                                                />
-                                               </Box>
-                                               <IconButton 
-                                                   onClick={() => removeItem(item.id)}
-                                                   color="error"
-                                                   size="small"
-                                                   aria-label="Remove item"
-                                               >
-                                                   <DeleteOutlineIcon />
-                                               </IconButton>
-                                           </Box>
-                                       </Box>
-                                   </Paper>
-                               );
-                           })}
-                       </Box>
-                    
+  const handleCheckout = () => {
+    setShippingMethod(expressShipping ? 'express' : 'standard');
+    navigate('/checkout');
+  };
 
+  return (
+    <Box>
+      <NavBar />
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 6 }, pt: { xs: 4, md: 8 }, minHeight: '60vh' }}>
+        <Typography variant="h2" component="h1" sx={{ mb: { xs: 4, md: 6 }, fontSize: { xs: '2.4rem', md: '3.2rem' } }}>
+          Your Cart
+        </Typography>
 
-                       <Paper 
-                           elevation={0}
-                           sx={{ 
-                               width: { xs: '100%', md: '300px' },
-                               height: 'fit-content',
-                               p: 3,
-                               border: '1px solid #eee',
-                               borderRadius: 2
-                           }}
-                       >
-                           <Typography variant="h6" sx={{ mb: 3 }}>Order Summary</Typography>
-                           
-                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                               <Typography>Items ({getTotalItems()}):</Typography>
-                               <Typography>${getTotalPrice().toFixed(2)}</Typography>
-                           </Box>
+        {items.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography sx={{ color: brand.muted, mb: 3 }}>Your cart is empty.</Typography>
+            <Button variant="outlined" onClick={() => navigate('/shop')}>
+              Browse the collection
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', gap: { xs: 4, md: 6 }, flexDirection: { xs: 'column', md: 'row' }, alignItems: 'flex-start' }}>
+            <Box sx={{ flex: 1, width: '100%', borderTop: `1px solid ${brand.line}` }}>
+              {items.map(item => {
+                const stockWarning = getStockWarning(item);
+                return (
+                  <Box key={item.id} sx={{ display: 'flex', gap: { xs: 2, md: 3 }, py: 3, borderBottom: `1px solid ${brand.line}` }}>
+                    <Box
+                      onClick={() => handleProductClick(item)}
+                      sx={{ display: 'flex', gap: { xs: 2, md: 3 }, flex: 1, cursor: 'pointer', minWidth: 0 }}
+                    >
+                      {item.image1 && (
+                        <Box
+                          component="img"
+                          src={item.image1}
+                          alt={item.title}
+                          loading="lazy"
+                          sx={{ width: { xs: 84, md: 110 }, height: { xs: 104, md: 136 }, objectFit: 'cover', flex: '0 0 auto' }}
+                        />
+                      )}
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{ fontSize: { xs: '1.15rem', md: '1.35rem' }, textTransform: 'capitalize', '&:hover': { color: brand.gold } }}
+                        >
+                          {item.title}
+                        </Typography>
+                        <Typography sx={{ mt: 0.5, color: brand.goldSoft }}>
+                          {formatPrice(item.price)}
+                        </Typography>
+                        {item.quantity > 1 && (
+                          <Typography variant="body2" sx={{ mt: 0.5, color: brand.muted }}>
+                            {item.quantity} × {formatPrice(item.price)} = {formatPrice(item.price * item.quantity)}
+                          </Typography>
+                        )}
+                        {stockWarning && (
+                          <Typography sx={{ ...labelStyle, fontSize: '0.6rem', color: brand.gold, mt: 1 }}>
+                            {stockWarning}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
 
-                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                               <Typography>
-                                   <FormControlLabel
-                                       control={
-                                           <Checkbox 
-                                               checked={expressShipping}
-                                               onChange={(e) => setExpressShipping(e.target.checked)}
-                                               sx={{ 
-                                                   color: '#333',
-                                                   '&.Mui-checked': {
-                                                       color: '#333',
-                                                   }
-                                               }}
-                                           />
-                                       }
-                                       label="Express Shipping"
-                                       sx={{ marginRight: 0 }}
-                                   />
-                               </Typography>
-                               <Typography>{expressShipping ? '$40.00' : 'FREE'}</Typography>
-                           </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', gap: 1 }}>
+                      <Box sx={{ width: 112 }}>
+                        <QuantityInput
+                          value={item.quantity}
+                          onChange={handleQuantityChange(item)}
+                          min={1}
+                          max={item.stock_quantity}
+                          aria-label="Quantity input"
+                        />
+                      </Box>
+                      <IconButton
+                        onClick={() => removeItem(item.id)}
+                        size="small"
+                        aria-label="Remove item"
+                        sx={{ color: brand.muted, '&:hover': { color: brand.gold } }}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
 
-                           {expressShipping && (
-                               <Typography variant="body2" color="text.secondary" sx={{ mb: 2, ml: 4 }}>
-                                   Express Delivery
-                               </Typography>
-                           )}
+            <Paper sx={{ width: { xs: '100%', md: 340 }, p: { xs: 3, md: 4 }, flex: '0 0 auto' }}>
+              <Typography variant="overline" component="h2" sx={{ display: 'block', mb: 3 }}>
+                Order Summary
+              </Typography>
 
-                           {!expressShipping && (
-                               <Typography variant="body2" color="text.secondary" sx={{ mb: 2, ml: 4 }}>
-                                   Standard Shipping 
-                               </Typography>
-                           )}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography>Items ({getTotalItems()})</Typography>
+                <Typography>{formatPrice(getTotalPrice())}</Typography>
+              </Box>
 
-                           <Divider sx={{ my: 2 }} />
-                           
-                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                               <Typography variant="h6">Total:</Typography>
-                               <Typography variant="h6">
-                                   ${(getTotalPrice() + (expressShipping ? 40 : 0)).toFixed(2)}
-                               </Typography>
-                           </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={expressShipping}
+                      onChange={(e) => setExpressShipping(e.target.checked)}
+                      sx={{ color: brand.muted }}
+                    />
+                  }
+                  label="Express shipping"
+                  sx={{ mr: 0 }}
+                />
+                <Typography>{expressShipping ? '$40' : 'Free'}</Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: brand.muted, mb: 2, ml: 4 }}>
+                {expressShipping ? 'Express delivery' : 'Standard shipping'}
+              </Typography>
 
-                           <Button 
-                               variant="contained" 
-                               fullWidth
-                               size="large"
-                               onClick={handleCheckout}
-                               sx={{ 
-                                   backgroundColor: '#333',
-                                   '&:hover': { 
-                                       backgroundColor: '#515151',
-                                       boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                                   }
-                               }}
-                           >
-                               Proceed to Checkout
-                           </Button>
-                       </Paper>
-                   </Box>
-               )}
-           </Box>
+              <Divider sx={{ my: 2 }} />
 
-           <Snackbar
-               open={notification !== null}
-               autoHideDuration={3000}
-               onClose={clearNotification}
-               anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-           >
-               {notification && (
-                   <Alert
-                       onClose={clearNotification}
-                       severity={notification.type}
-                       sx={{ width: '100%' }}
-                   >
-                       {notification.message}
-                   </Alert>
-               )}
-           </Snackbar>
-       </Box>
-   );
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6">Total</Typography>
+                <Typography variant="h6">
+                  {formatPrice(getTotalPrice() + (expressShipping ? 40 : 0))}
+                </Typography>
+              </Box>
+
+              <Button variant="contained" fullWidth size="large" onClick={handleCheckout}>
+                Checkout
+              </Button>
+            </Paper>
+          </Box>
+        )}
+      </Box>
+
+      <Snackbar
+        open={notification !== null}
+        autoHideDuration={3000}
+        onClose={clearNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {notification && (
+          <Alert
+            onClose={clearNotification}
+            severity={notification.type}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
+    </Box>
+  );
 }
 
 export default Cart;

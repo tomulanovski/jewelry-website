@@ -1,222 +1,117 @@
 import React from "react";
-import { Box, Grid, Typography, Divider } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Box, Grid, Typography } from "@mui/material";
+import { Link, useLocation } from "react-router-dom";
+import { brand, labelStyle } from "../theme";
 
-const GOLD = "rgb(227, 217, 177)";
-const HEADING_FONT = "'Cormorant Garamond', Georgia, serif";
-
-const footerLinkStyle = {
-  color: GOLD,
+const linkSx = {
+  color: brand.muted,
+  fontSize: "0.9rem",
+  lineHeight: 2,
   textDecoration: "none",
-  display: "inline-block",
+  display: "block",
+  "&:hover": { color: brand.goldSoft },
 };
 
-function FooterLink({ to, children }) {
-  return (
-    <Link
-      to={to}
-      style={footerLinkStyle}
-    >
-      <Typography
-        variant="body2"
-        component="span"
-        sx={{
-          color: GOLD,
-          fontSize: "0.875rem",
-          lineHeight: 1.8,
-          "&:hover": { textDecoration: "underline" },
-        }}
+function FooterLink({ to, href, external, children }) {
+  if (href) {
+    return (
+      <Box
+        component="a"
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        sx={linkSx}
       >
         {children}
-      </Typography>
-    </Link>
+      </Box>
+    );
+  }
+  return (
+    <Box component={Link} to={to} sx={linkSx}>
+      {children}
+    </Box>
   );
 }
 
-function ExternalLink({ href, children, target }) {
+function ColumnTitle({ children }) {
   return (
-    <a
-      href={href}
-      target={target || "_self"}
-      rel={target === "_blank" ? "noopener noreferrer" : undefined}
-      style={footerLinkStyle}
-    >
-      <Typography
-        variant="body2"
-        component="span"
-        sx={{
-          color: GOLD,
-          fontSize: "0.875rem",
-          lineHeight: 1.8,
-          "&:hover": { textDecoration: "underline" },
-        }}
-      >
-        {children}
-      </Typography>
-    </a>
+    <Typography sx={{ ...labelStyle, color: brand.gold, mb: 2 }}>
+      {children}
+    </Typography>
   );
 }
 
 function Footer() {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <Box
       component="footer"
-      sx={{
-        backgroundColor: "#0a0a0a",
-        color: GOLD,
-        pt: { xs: 4, md: 6 },
-        pb: 0,
-        mt: "auto",
-        width: "100%",
-      }}
+      sx={{ borderTop: `1px solid ${brand.line}`, backgroundColor: brand.black, mt: { xs: 8, md: 12 } }}
     >
-      <Box
-        sx={{
-          maxWidth: "1100px",
-          mx: "auto",
-          px: { xs: 3, md: 6 },
-        }}
-      >
-        <Grid container spacing={{ xs: 4, md: 6 }}>
-          {/* Column 1: Brand */}
+      <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 3, md: 6 }, pt: { xs: 6, md: 8 } }}>
+        <Grid container spacing={{ xs: 5, md: 6 }}>
           <Grid item xs={12} md={4}>
             <Typography
-              variant="h5"
               sx={{
-                fontFamily: HEADING_FONT,
-                color: GOLD,
-                letterSpacing: "0.15em",
-                fontWeight: 400,
-                mb: 0.5,
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontSize: "1.6rem",
+                color: brand.text,
+                letterSpacing: "0.04em",
+                mb: 1,
               }}
             >
               Catherine Ulanovski
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: GOLD,
-                opacity: 0.8,
-                fontSize: "0.875rem",
-                lineHeight: 1.7,
-                mb: 1,
-              }}
-            >
-              Handcrafted jewelry
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: GOLD,
-                opacity: 0.6,
-                fontSize: "0.8rem",
-                fontStyle: "italic",
-                lineHeight: 1.7,
-              }}
-            >
-              Each piece made by hand, start to finish.
+            <Typography sx={{ color: brand.muted, fontSize: "0.9rem", lineHeight: 1.8, maxWidth: 300 }}>
+              Gold jewelry with natural stones, made by hand from start to finish.
             </Typography>
           </Grid>
 
-          {/* Column 2: Shop */}
-          <Grid item xs={12} md={4}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontFamily: HEADING_FONT,
-                color: GOLD,
-                letterSpacing: "0.12em",
-                fontWeight: 400,
-                mb: 2,
-                fontSize: "1.1rem",
-                textTransform: "uppercase",
-              }}
-            >
-              Shop
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-              <FooterLink to="/shop">All Jewelry</FooterLink>
-              <FooterLink to="/shop/rings">Rings</FooterLink>
-              <FooterLink to="/shop/necklaces">Necklaces</FooterLink>
-              <FooterLink to="/shop/earrings">Earrings</FooterLink>
-              <FooterLink to="/shop/bracelets">Bracelets</FooterLink>
-              <FooterLink to="/shop/wedding_engagement">Wedding &amp; Engagement</FooterLink>
-            </Box>
+          <Grid item xs={6} md={2}>
+            <ColumnTitle>Shop</ColumnTitle>
+            <FooterLink to="/shop">All Jewelry</FooterLink>
+            <FooterLink to="/shop/rings">Rings</FooterLink>
+            <FooterLink to="/shop/necklaces">Necklaces</FooterLink>
+            <FooterLink to="/shop/earrings">Earrings</FooterLink>
+            <FooterLink to="/shop/bracelets">Bracelets</FooterLink>
+            <FooterLink to="/shop/wedding_engagement">Wedding &amp; Engagement</FooterLink>
           </Grid>
 
-          {/* Column 3: Connect */}
-          <Grid item xs={12} md={4}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontFamily: HEADING_FONT,
-                color: GOLD,
-                letterSpacing: "0.12em",
-                fontWeight: 400,
-                mb: 2,
-                fontSize: "1.1rem",
-                textTransform: "uppercase",
-              }}
-            >
-              Connect
+          <Grid item xs={6} md={3}>
+            <ColumnTitle>Catherine</ColumnTitle>
+            <FooterLink to="/about">About</FooterLink>
+            <FooterLink href="/paintings">Paintings</FooterLink>
+            <FooterLink href="https://www.etsy.com/il-en/shop/CJbijoux" external>Etsy Shop</FooterLink>
+          </Grid>
+
+          <Grid item xs={12} md={3}>
+            <ColumnTitle>Contact</ColumnTitle>
+            <Typography sx={{ color: brand.muted, fontSize: "0.9rem", lineHeight: 1.8, mb: 1 }}>
+              Questions or a custom piece in mind? Write to Catherine.
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-              <FooterLink to="/about">About Catherine</FooterLink>
-              <ExternalLink href="mailto:info@cjbijoux.com">Custom Orders</ExternalLink>
-            </Box>
-            <Typography
-              variant="body2"
-              sx={{
-                color: GOLD,
-                opacity: 0.7,
-                fontSize: "0.875rem",
-                mt: 2,
-                mb: 0.5,
-                lineHeight: 1.7,
-              }}
-            >
-              Questions? Get in touch:
-            </Typography>
-            <ExternalLink href="mailto:info@cjbijoux.com">
-              info@cjbijoux.com
-            </ExternalLink>
-            <Box sx={{ mt: 0.5 }}>
-              <ExternalLink href="https://www.etsy.com/il-en/shop/CJbijoux" target="_blank">
-                Visit the Etsy shop
-              </ExternalLink>
-            </Box>
+            <FooterLink href="mailto:info@cjbijoux.com">info@cjbijoux.com</FooterLink>
           </Grid>
         </Grid>
 
-        {/* Bottom bar */}
-        <Divider
-          sx={{
-            borderColor: GOLD,
-            opacity: 0.15,
-            mt: { xs: 4, md: 6 },
-          }}
-        />
         <Box
           sx={{
+            borderTop: `1px solid ${brand.line}`,
+            mt: { xs: 6, md: 8 },
+            py: 3,
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: { xs: "flex-start", sm: "center" },
-            py: 2.5,
             gap: 1,
           }}
         >
-          <Typography
-            variant="caption"
-            sx={{
-              color: GOLD,
-              opacity: 0.5,
-              fontSize: "0.75rem",
-              letterSpacing: "0.04em",
-            }}
-          >
-            &copy; 2025 Catherine Ulanovski
+          <Typography sx={{ ...labelStyle, fontSize: "0.65rem", color: brand.muted }}>
+            &copy; {new Date().getFullYear()} Catherine Ulanovski
           </Typography>
+          <Box component="a" href="/" sx={{ ...labelStyle, fontSize: "0.65rem", color: brand.muted, textDecoration: "none", "&:hover": { color: brand.goldSoft } }}>
+            catherineulanovski.com
+          </Box>
         </Box>
       </Box>
     </Box>

@@ -153,7 +153,7 @@ export function generateOrderPDF(order) {
         )[0];
 
         const materials = doc.splitTextToSize(
-            item.product?.materials ?? '—',
+            item.product?.materials ?? '-',
             maxMaterialsW
         )[0];
 
@@ -213,7 +213,7 @@ export function generateOrderPDF(order) {
     doc.setFontSize(9);
     doc.setTextColor(...DARK_GRAY);
     doc.text(
-        'Catherine Ulanovski — Order Management',
+        'Catherine Ulanovski · Order Management',
         PAGE_W / 2,
         pageH - 34,
         { align: 'center' }

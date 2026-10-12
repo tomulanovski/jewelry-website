@@ -127,14 +127,14 @@ function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubm
   };
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Paper sx={{ p: { xs: 3, md: 4 } }}>
+      <Typography variant="overline" component="h2" sx={{ display: 'block', mb: 2 }}>
         Secure Payment
       </Typography>
 
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" align="center" gutterBottom>
-          Total: ${Number(total).toFixed(2)}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" component="p">
+          ${Number(total).toFixed(2)}
         </Typography>
       </Box>
 
@@ -144,7 +144,8 @@ function PaymentSection({ total, subtotal, shipping, items, shippingInfo, onSubm
         </Alert>
       )}
 
-      <Box sx={{ mb: 3 }}>
+      {/* PayPal's buttons and card form draw dark text, so they sit on a light panel. */}
+      <Box sx={{ mb: 3, p: { xs: 2, md: 3 }, backgroundColor: '#f6f2ea' }}>
         {isProcessing ? (
           <Box display="flex" justifyContent="center" p={3}>
             <CircularProgress />

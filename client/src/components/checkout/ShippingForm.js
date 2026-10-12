@@ -55,8 +55,8 @@ function ShippingForm({ initialData, onSubmit }) {
   };
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h6" sx={{ mb: 3 }}>
+    <Paper sx={{ p: { xs: 3, md: 4 } }}>
+      <Typography variant="overline" component="h2" sx={{ display: 'block', mb: 3 }}>
         Shipping Details
       </Typography>
 
@@ -198,15 +198,8 @@ function ShippingForm({ initialData, onSubmit }) {
         </Grid>
 
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            type="submit"
-            variant="contained"
-            sx={{
-              backgroundColor: '#333',
-              '&:hover': { backgroundColor: '#555' }
-            }}
-          >
-            Continue to Payment
+          <Button type="submit" variant="contained">
+            Continue
           </Button>
         </Box>
       </form>

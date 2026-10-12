@@ -191,7 +191,7 @@ export function generateReceipt(order, orderItems) {
     doc.setFontSize(9);
     doc.setTextColor(...DARK_GRAY);
     doc.text(
-        'Thank you for your order — Catherine Ulanovski',
+        'Thank you for your order. Catherine Ulanovski',
         PAGE_W / 2,
         pageH - 34,
         { align: 'center' }

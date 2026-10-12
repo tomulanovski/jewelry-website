@@ -6,8 +6,7 @@ import {
  Paper,
  Grid,
  Divider,
- CircularProgress,
- Alert
+ CircularProgress
 } from '@mui/material';
 
 function OrderReview({ 
@@ -24,8 +23,8 @@ function OrderReview({
   const sub = total + shippingCost;
 
  return (
-   <Paper sx={{ p: 3 }}>
-     <Typography variant="h6" sx={{ mb: 3 }}>
+   <Paper sx={{ p: { xs: 3, md: 4 } }}>
+     <Typography variant="overline" component="h2" sx={{ display: 'block', mb: 3 }}>
        Review Order
      </Typography>
 
@@ -99,7 +98,7 @@ function OrderReview({
              />
            )}
            <Box sx={{ flex: 1 }}>
-             <Typography variant="body2">
+             <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                {item.title}
              </Typography>
              <Typography variant="body2" color="text.secondary">
@@ -155,26 +154,21 @@ function OrderReview({
        </Typography>
      </Box>
 
-     <Alert severity="info" sx={{ mb: 3 }}>
-     By paying with your card, you acknowledge that your data will be processed by PayPal 
-     subject to the PayPal Privacy Statement available at PayPal.com
-     </Alert>
+     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+       Payment is handled securely by PayPal. If you pay by card, PayPal processes your details under its own privacy statement.
+     </Typography>
 
      <Button
        fullWidth
        variant="contained"
        onClick={() => onEdit(2)}
        disabled={isProcessing}
-       sx={{
-         backgroundColor: '#333',
-         '&:hover': { backgroundColor: '#555' },
-         height: 48
-       }}
+       sx={{ height: 52 }}
      >
        {isProcessing ? (
          <CircularProgress size={24} color="inherit" />
        ) : (
-         `Place Order - $${total.toFixed(2)}`
+         `Continue to payment · $${total.toFixed(2)}`
        )}
      </Button>
 

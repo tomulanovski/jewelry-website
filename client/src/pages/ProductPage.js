@@ -1,18 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Box, Typography, Button, CircularProgress, Snackbar, Alert, Divider } from '@mui/material';
 import { useCart } from '../contexts/CartContext';
 import { useProducts } from '../contexts/ProductContext';
-import { useTheme } from '@mui/material/styles';
 import NavBar from '../components/navbar';
-import ImageCarousel from '../components/imageSlider';
 import QuantityInput from '../components/quantityInput';
+import { formatPrice } from '../components/ProductCard';
+import { brand, labelStyle } from '../theme';
+
+function Gallery({ images, title }) {
+  const [selected, setSelected] = useState(0);
+
+  useEffect(() => {
+    setSelected(0);
+  }, [images[0]]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Box>
+      <Box sx={{ aspectRatio: '1 / 1', backgroundColor: brand.panel, overflow: 'hidden' }}>
+        <Box
+          component="img"
+          src={images[selected]}
+          alt={title}
+          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      </Box>
+      {images.length > 1 && (
+        <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5, overflowX: 'auto' }}>
+          {images.map((src, i) => (
+            <Box
+              key={src}
+              component="button"
+              onClick={() => setSelected(i)}
+              aria-label={`Photo ${i + 1}`}
+              sx={{
+                p: 0,
+                flex: '0 0 auto',
+                width: { xs: 64, md: 84 },
+                aspectRatio: '1 / 1',
+                cursor: 'pointer',
+                background: 'none',
+                border: `1px solid ${i === selected ? brand.gold : 'transparent'}`,
+                opacity: i === selected ? 1 : 0.6,
+                transition: 'opacity 0.2s ease',
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <Box component="img" src={src} alt="" loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+}
 
 function ProductPage() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { products, isLoading: contextLoading, getProduct } = useProducts();
+  const { isLoading: contextLoading, getProduct } = useProducts();
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const { addItem, getItem, notification, clearNotification } = useCart();
 
@@ -39,12 +85,15 @@ function ProductPage() {
     return (
       <Box>
         <NavBar />
-        <Typography align="center" variant="h4" sx={{ marginTop: 5, color: 'error.main' }}>
-          Product not found
-        </Typography>
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Button variant="contained" onClick={() => navigate('/shop')}>
-            Return to Shop
+        <Box sx={{ textAlign: 'center', py: 12, px: 3 }}>
+          <Typography variant="h3" sx={{ mb: 2 }}>
+            This piece isn't available
+          </Typography>
+          <Typography sx={{ color: brand.muted, mb: 4 }}>
+            It may have sold. Have a look at what's in the collection now.
+          </Typography>
+          <Button variant="outlined" onClick={() => navigate('/shop')}>
+            Back to the shop
           </Button>
         </Box>
       </Box>
@@ -53,7 +102,7 @@ function ProductPage() {
 
   const images = Object.entries(product)
     .filter(([key, value]) => key.startsWith('image') && value)
-    .map(([_, value]) => ({ image: value, title: product.title }));
+    .map(([_, value]) => value);
 
   const cartItem = getItem(product.id);
   const availableStock = (cartItem?.stock_quantity || product.quantity) - (cartItem?.quantity || 0);
@@ -76,114 +125,107 @@ function ProductPage() {
 
   const getStockMessage = () => {
     if (product.quantity === 0) {
-      return 'Out of Stock';
+      return 'Sold out';
     }
     if (cartItem) {
       if (availableStock === 0) {
-        return `Maximum quantity (${cartItem.quantity}) already in cart`;
+        return `All available pieces are in your cart (${cartItem.quantity})`;
       }
-      return `${availableStock} more available (${cartItem.quantity} in cart)`;
+      return `${availableStock} more available (${cartItem.quantity} in your cart)`;
     }
     if (product.quantity <= 5) {
-      return `Only ${product.quantity} left in stock`;
+      return `Only ${product.quantity} left`;
     }
-    return `${product.quantity} items available`;
+    return null;
   };
 
   const isMaxInCart = cartItem && availableStock === 0;
+  const stockMessage = getStockMessage();
 
   return (
-    <Box sx={{ padding: '20px' }}>
+    <Box>
       <NavBar />
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', lg: 'row' },
-          alignItems: { xs: 'center', lg: 'flex-start' },
-          gap: 6,
-          mt: 4,
-        }}
-      >
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 6 }, pt: { xs: 3, md: 6 } }}>
         <Box
-          sx={{
-            flex: { xs: '1', lg: '2' },
-            maxWidth: { xs: '100%', lg: '70%' },
-            width: '100%',
-            margin: 'auto',
-          }}
+          component={Link}
+          to="/shop"
+          sx={{ ...labelStyle, fontSize: '0.65rem', color: brand.muted, textDecoration: 'none', '&:hover': { color: brand.goldSoft } }}
         >
-          <ImageCarousel items={images} width="100%" />
+          &larr; Back to the collection
         </Box>
 
         <Box
           sx={{
-            flex: { xs: '1', lg: '1' },
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            width: { xs: '100%', lg: '30%' },
-            padding: { xs: 2, lg: 4 },
+            display: 'grid',
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
+            gap: { xs: 4, md: 8 },
+            mt: { xs: 2, md: 3 },
+            alignItems: 'start',
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
-            {product.title}
-          </Typography>
-          <Typography variant="h6" color="white" sx={{ mb: 2 }}>
-            ${product.price}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 3 }}>
-            {product.description}
-          </Typography>
+          <Gallery images={images} title={product.title} />
 
-          <Typography 
-            variant="body2" 
-            color={availableStock <= 5 ? 'error.main' : theme.palette.text.primary}
-            sx={{ mb: 2, fontWeight: availableStock <= 5 ? 'bold' : 'normal' }}
-          >
-            {getStockMessage()}
-          </Typography>
-          
-          <Box sx={{ mt: 2 }}>
-            {product.quantity > 0 && !isMaxInCart ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 500 }}>
-                  Quantity:
-                </Typography>
-                <Box sx={{ width: '30%', minWidth: '120px' }}>
-                  <QuantityInput
-                    value={selectedQuantity}
-                    onChange={handleQuantityChange}
-                    min={1}
-                    max={availableStock}
-                    aria-label="Quantity input"
-                  />
+          <Box sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
+            <Typography
+              variant="h2"
+              component="h1"
+              sx={{ fontSize: { xs: '2.2rem', md: '2.8rem' }, textTransform: 'capitalize', lineHeight: 1.1 }}
+            >
+              {product.title}
+            </Typography>
+            <Typography sx={{ fontSize: '1.15rem', color: brand.goldSoft, mt: 1.5 }}>
+              {formatPrice(product.price)}
+            </Typography>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography sx={{ color: brand.text, lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+              {product.description}
+            </Typography>
+            {product.materials && (
+              <Typography sx={{ color: brand.muted, mt: 2, fontSize: '0.9rem' }}>
+                <Box component="span" sx={{ ...labelStyle, fontSize: '0.62rem', color: brand.gold, mr: 1 }}>
+                  Materials
                 </Box>
-                <Button
-                  sx={{ 
-                    color: theme.palette.text.primary,
-                    backgroundColor: '#333',
-                    transition: 'all 0.3s ease-in-out',
-                    '&:hover': { 
-                      backgroundColor: '#515151',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                    }
-                  }}
-                  variant="contained"
-                  onClick={handleAddToCart}
-                >
-                  Add to Cart
-                </Button>
-              </Box>
-            ) : (
-              <Button
-                variant="contained"
-                disabled
-                sx={{ width: '100%' }}
-              >
-                {isMaxInCart ? 'Maximum Quantity in Cart' : 'Out of Stock'}
-              </Button>
+                {product.materials.split(',').map(m => m.trim()).filter(Boolean).join(', ')}
+              </Typography>
             )}
+
+            {stockMessage && (
+              <Typography sx={{ ...labelStyle, fontSize: '0.65rem', color: brand.gold, mt: 3 }}>
+                {stockMessage}
+              </Typography>
+            )}
+
+            <Box sx={{ mt: 3 }}>
+              {product.quantity > 0 && !isMaxInCart ? (
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
+                  <Box sx={{ width: 120, flex: '0 0 auto' }}>
+                    <QuantityInput
+                      value={selectedQuantity}
+                      onChange={handleQuantityChange}
+                      min={1}
+                      max={availableStock}
+                      aria-label="Quantity input"
+                    />
+                  </Box>
+                  <Button variant="contained" fullWidth onClick={handleAddToCart}>
+                    Add to cart
+                  </Button>
+                </Box>
+              ) : (
+                <Button variant="outlined" disabled fullWidth>
+                  {isMaxInCart ? 'All available pieces are in your cart' : 'Sold out'}
+                </Button>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 4, pt: 3, borderTop: `1px solid ${brand.line}` }}>
+              <Typography sx={{ color: brand.muted, fontSize: '0.88rem', lineHeight: 1.8 }}>
+                Made by hand in Catherine's studio and shipped within about a week. Free standard shipping, or express for $40.
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -198,6 +240,7 @@ function ProductPage() {
           <Alert
             onClose={clearNotification}
             severity={notification.type}
+            variant="filled"
             sx={{ width: '100%' }}
           >
             {notification.message}

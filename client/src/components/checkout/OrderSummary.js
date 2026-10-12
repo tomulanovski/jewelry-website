@@ -17,8 +17,8 @@ function OrderSummary({
 
 
    return (
-       <Paper sx={{ p: 3, position: 'sticky', top: 20 }}>
-           <Typography variant="h6" sx={{ mb: 3 }}>
+       <Paper sx={{ p: { xs: 3, md: 4 }, position: 'sticky', top: 20 }}>
+           <Typography variant="overline" component="h2" sx={{ display: 'block', mb: 3 }}>
                Order Summary
            </Typography>
 
@@ -36,7 +36,7 @@ function OrderSummary({
                            <Typography variant="body2" color="text.secondary">
                                {item.quantity}x
                            </Typography>
-                           <Typography variant="body2" color="text.secondary">
+                           <Typography variant="body2" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
                                {item.title}
                            </Typography>
                        </Box>

@@ -11,6 +11,7 @@ import {
   Paper,
   Link
 } from '@mui/material';
+import NavBar from '../../components/navbar';
 
 export const Login = () => {
   const [formData, setFormData] = useState({
@@ -38,7 +39,9 @@ export const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <>
+    <NavBar />
+    <Container component="main" maxWidth="xs" sx={{ pb: 4 }}>
       <Box
         sx={{
           marginTop: 8,
@@ -47,8 +50,8 @@ export const Login = () => {
           alignItems: 'center',
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center">
+        <Paper sx={{ p: { xs: 3, sm: 5 }, width: '100%' }}>
+          <Typography component="h1" variant="h3" align="center">
             Sign In
           </Typography>
           {error && (
@@ -93,12 +96,13 @@ export const Login = () => {
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link component={RouterLink} to="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
+                {"New here? Create an account"}
               </Link>
             </Box>
           </Box>
         </Paper>
       </Box>
     </Container>
+    </>
   );
 };

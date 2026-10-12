@@ -33,22 +33,15 @@ function OrderConfirmation() {
                     padding: { xs: 2, md: 4 },
                     textAlign: 'center'
                 }}>
-                    <Typography variant="h6" color="error">
-                        Order details not found
+                    <Typography sx={{ color: 'text.secondary', mt: 6 }}>
+                        We couldn't show this order's details here. If you just paid, your confirmation email has everything.
                     </Typography>
                     <Button
-                        variant="contained"
+                        variant="outlined"
                         onClick={() => navigate('/shop')}
-                        sx={{ 
-                            mt: 2,
-                            backgroundColor: '#333',
-                            '&:hover': { 
-                                backgroundColor: '#515151',
-                                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                            }
-                        }}
+                        sx={{ mt: 3 }}
                     >
-                        Return to Shop
+                        Back to the shop
                     </Button>
                 </Box>
             </Box>
@@ -66,28 +59,30 @@ function OrderConfirmation() {
                 {/* Success Message */}
                 <Paper 
                     elevation={0}
-                    sx={{ 
-                        p: 4, 
-                        mb: 4, 
-                        textAlign: 'center',
-                        border: '1px solid #eee',
-                        borderRadius: 2
+                    sx={{
+                        p: { xs: 4, md: 6 },
+                        mb: 4,
+                        textAlign: 'center'
                     }}
                 >
-                    <CheckCircleOutline 
-                        sx={{ 
-                            fontSize: 64, 
-                            color: 'success.main',
+                    <CheckCircleOutline
+                        sx={{
+                            fontSize: 48,
+                            color: 'primary.main',
                             mb: 2
-                        }} 
+                        }}
                     />
-                    
-                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
-                        Thank You for Your Order!
+
+                    <Typography variant="h3" component="h1" gutterBottom>
+                        Thank you for your order
                     </Typography>
-                    
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+
+                    <Typography variant="overline" component="p" gutterBottom>
                         Order #{id}
+                    </Typography>
+
+                    <Typography sx={{ color: 'text.secondary', mt: 2, maxWidth: 480, mx: 'auto' }}>
+                        A confirmation email is on its way{orderDetails.shipping?.email ? ` to ${orderDetails.shipping.email}` : ''}. Catherine will prepare your piece and ship it within about a week.
                     </Typography>
 
                     {/* Status Icons - COMMENTED OUT
@@ -148,9 +143,7 @@ function OrderConfirmation() {
                             elevation={0}
                             sx={{ 
                                 p: 3,
-                                height: '100%',
-                                border: '1px solid #eee',
-                                borderRadius: 2
+                                height: '100%'
                             }}
                         >
                             <Typography variant="h6" gutterBottom>
@@ -199,9 +192,7 @@ function OrderConfirmation() {
                             elevation={0}
                             sx={{ 
                                 p: 3,
-                                height: '100%',
-                                border: '1px solid #eee',
-                                borderRadius: 2
+                                height: '100%'
                             }}
                         >
                             <Typography variant="h6" gutterBottom>
@@ -217,7 +208,7 @@ function OrderConfirmation() {
                                         mb: 1
                                     }}
                                 >
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                                         {item.title} × {item.quantity}
                                     </Typography>
                                     <Typography variant="body2">
@@ -267,30 +258,14 @@ function OrderConfirmation() {
                                 alert('Could not generate receipt. Please try again.');
                             }
                         }}
-                        sx={{
-                            borderColor: '#e3d9b1',
-                            color: '#e3d9b1',
-                            '&:hover': {
-                                borderColor: '#c9bf94',
-                                backgroundColor: 'rgba(227, 217, 177, 0.08)',
-                                boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                            }
-                        }}
                     >
-                        Download Receipt
+                        Download receipt
                     </Button>
                     <Button
                         variant="contained"
                         onClick={() => navigate('/shop')}
-                        sx={{
-                            backgroundColor: '#333',
-                            '&:hover': {
-                                backgroundColor: '#515151',
-                                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                            }
-                        }}
                     >
-                        Continue Shopping
+                        Continue shopping
                     </Button>
                 </Box>
             </Box>

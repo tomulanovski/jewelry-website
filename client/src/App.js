@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import { Login } from './pages/users/login';
 import { Register } from './pages/users/register';
-import './App.css';
 import Cart from './pages/Cart';
 import Shop from './pages/Shop/Shop';
 import CheckoutPage from './pages/Checkout';
@@ -21,6 +20,9 @@ import { AdminSoldOut } from './pages/Admin/AdminSoldOut';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
+import Footer from './components/footer';
+import { ThemeProvider } from '@mui/material/styles';
+import { adminTheme } from './theme';
 
 
 function App() {
@@ -55,7 +57,7 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
               <Route path="/about" element={<About />} />
-              <Route element={<AdminRoute />}>
+              <Route element={<ThemeProvider theme={adminTheme}><AdminRoute /></ThemeProvider>}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
@@ -63,6 +65,7 @@ function App() {
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Footer />
           </ErrorBoundary>
         </CartProvider>
         </ProductProvider>

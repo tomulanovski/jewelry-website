@@ -4,6 +4,7 @@ import {
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
 import { styled } from '@mui/system';
+import { brand } from '../theme';
 
 const QuantityInput = React.forwardRef(function CustomNumberInput(props, ref) {
   return (
@@ -16,10 +17,10 @@ const QuantityInput = React.forwardRef(function CustomNumberInput(props, ref) {
       }}
       slotProps={{
         incrementButton: {
-          children: '▴',
+          children: '+',
         },
         decrementButton: {
-          children: '▾',
+          children: '−',
         },
       }}
       {...props}
@@ -28,146 +29,65 @@ const QuantityInput = React.forwardRef(function CustomNumberInput(props, ref) {
   );
 });
 
-const blue = {
-  100: '#DAECFF',
-  200: '#80BFFF',
-  400: '#3399FF',
-  500: '#007FFF',
-  600: '#0072E5',
-  700: '#0059B2',
-};
-
-const grey = {
-  50: '#F3F6F9',
-  100: '#E5EAF2',
-  200: '#DAE2ED',
-  300: '#C7D0DD',
-  400: '#B0B8C4',
-  500: '#9DA8B7',
-  600: '#6B7A90',
-  700: '#434D5B',
-  800: '#303740',
-  900: '#1C2025',
-};
-
-const StyledInputRoot = styled('div')(
-  ({ theme }) => `
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 400;
-  border-radius: 8px;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
-  background: ${theme.palette.mode === 'dark' ? grey[900] : '#fff'};
-  border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-  box-shadow: 0px 2px 4px ${
-    theme.palette.mode === 'dark' ? 'rgba(0,0,0, 0.5)' : 'rgba(0,0,0, 0.05)'
-  };
+// Layout: [ − ] [ value ] [ + ]
+const StyledInputRoot = styled('div')`
   display: grid;
-  grid-template-columns: 80% 20%; // Changed this line
-  grid-template-rows: 1fr 1fr;
-  overflow: hidden;
-  padding: 4px;
+  grid-template-columns: 36px 1fr 36px;
+  height: 100%;
+  min-height: 46px;
   width: 100%;
-  min-width: 150px; // Increased minimum width
+  border: 1px solid ${brand.line};
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s ease;
 
-  &.${numberInputClasses.focused} {
-    border-color: ${blue[400]};
-    box-shadow: 0 0 0 3px ${theme.palette.mode === 'dark' ? blue[700] : blue[200]};
+  &.${numberInputClasses.focused}, &:hover {
+    border-color: ${brand.gold};
   }
+`;
 
-  &:hover {
-    border-color: ${blue[400]};
-  }
-
-  // firefox
-  &:focus-visible {
-    outline: 0;
-  }
-`,
-);
-
-const StyledInputElement = styled('input')(
-  ({ theme }) => `
-  font-size: 0.875rem;
+const StyledInputElement = styled('input')`
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  font-size: 0.95rem;
   font-family: inherit;
-  font-weight: 400;
-  line-height: 1.5;
-  grid-column: 1/2;
-  grid-row: 1/3;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
-  background: inherit;
+  color: ${brand.text};
+  background: transparent;
   border: none;
-  border-radius: inherit;
-  padding: 8px 12px;
   outline: 0;
   text-align: center;
-  width: 100%; // Added this
-`,
-);
+`;
 
-const StyledButton = styled('button')(
-  ({ theme }) => `
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  align-items: center;
+const StyledButton = styled('button')`
+  grid-row: 1;
   appearance: none;
   padding: 0;
-  width: 100%; // Changed to fill the grid column
-  height: 19px;
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   line-height: 1;
-  box-sizing: border-box;
-  background: ${theme.palette.mode === 'dark' ? grey[900] : '#fff'};
+  color: ${brand.goldSoft};
+  background: transparent;
   border: 0;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 120ms;
+  cursor: pointer;
+  transition: color 0.2s ease;
 
   &:hover {
-    background: ${theme.palette.mode === 'dark' ? grey[800] : grey[50]};
-    border-color: ${theme.palette.mode === 'dark' ? grey[600] : grey[300]};
-    cursor: pointer;
+    color: ${brand.gold};
   }
 
-  &.${numberInputClasses.incrementButton} {
-    grid-column: 2/3;
-    grid-row: 1/2;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    border: 1px solid;
-    border-bottom: 0;
-    border-color: ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-    background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
-    color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
-
-    &:hover {
-      cursor: pointer;
-      color: #FFF;
-      background: ${theme.palette.mode === 'dark' ? blue[600] : blue[500]};
-      border-color: ${theme.palette.mode === 'dark' ? blue[400] : blue[600]};
-    }
+  &:disabled {
+    color: ${brand.muted};
+    opacity: 0.4;
+    cursor: default;
   }
 
   &.${numberInputClasses.decrementButton} {
-    grid-column: 2/3;
-    grid-row: 2/3;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border: 1px solid;
-    border-color: ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-    background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
-    color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
+    grid-column: 1;
   }
 
-  &:hover {
-    cursor: pointer;
-    color: #FFF;
-    background: ${theme.palette.mode === 'dark' ? blue[600] : blue[500]};
-    border-color: ${theme.palette.mode === 'dark' ? blue[400] : blue[600]};
+  &.${numberInputClasses.incrementButton} {
+    grid-column: 3;
   }
-`,
-);
+`;
 
 export default QuantityInput;

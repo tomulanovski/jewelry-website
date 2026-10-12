@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useProducts } from '../contexts/ProductContext';
+import { brand } from '../theme';
 
 function ProductSearch({ onProductSelect, adminStyle = false }) {
   const navigate = useNavigate();
@@ -57,45 +58,45 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
   const getStyles = () => ({
     regularStyles: {
       '& .MuiOutlinedInput-root': {
-        backgroundColor: adminStyle ? 'background.paper' : 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: adminStyle ? 'background.paper' : brand.panel,
         '&:hover': {
-          backgroundColor: adminStyle ? 'background.default' : 'rgba(255, 255, 255, 0.15)',
+          backgroundColor: adminStyle ? 'background.default' : brand.panel,
         },
         '& fieldset': {
-          borderColor: adminStyle ? 'divider' : 'rgba(255, 255, 255, 0.23)',
+          borderColor: adminStyle ? 'divider' : brand.line,
         },
         '&:hover fieldset': {
-          borderColor: adminStyle ? 'primary.main' : 'rgba(255, 255, 255, 0.5)',
+          borderColor: adminStyle ? 'primary.main' : brand.gold,
         },
       },
       '& .MuiOutlinedInput-input': {
-        color: adminStyle ? 'text.primary' : 'white',
+        color: adminStyle ? 'text.primary' : brand.text,
         '&::placeholder': {
-          color: adminStyle ? 'text.secondary' : 'rgba(255, 255, 255, 0.7)',
+          color: adminStyle ? 'text.secondary' : brand.muted,
           opacity: 1,
         },
       },
       '& .MuiAutocomplete-clearIndicator': {
-        color: adminStyle ? 'action.active' : 'rgba(255, 255, 255, 0.7)',
+        color: adminStyle ? 'action.active' : brand.muted,
       },
     },
     optionStyles: {
-      backgroundColor: adminStyle ? 'background.paper' : '#1a1a1a',
-      color: adminStyle ? 'text.primary' : 'white',
+      backgroundColor: adminStyle ? 'background.paper' : brand.black,
+      color: adminStyle ? 'text.primary' : brand.text,
       '&:hover': {
-        backgroundColor: adminStyle ? 'action.hover' : 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: adminStyle ? 'action.hover' : 'rgba(201, 169, 110, 0.08)',
       },
     },
     paperStyles: {
-      backgroundColor: adminStyle ? 'background.paper' : '#1a1a1a',
+      backgroundColor: adminStyle ? 'background.paper' : brand.black,
       border: '1px solid',
-      borderColor: adminStyle ? 'divider' : 'rgba(255, 255, 255, 0.12)',
+      borderColor: adminStyle ? 'divider' : brand.line,
       '& .MuiAutocomplete-option': {
         '&:hover': {
-          backgroundColor: adminStyle ? 'action.hover' : 'rgba(255, 255, 255, 0.05)',
+          backgroundColor: adminStyle ? 'action.hover' : 'rgba(201, 169, 110, 0.08)',
         },
         '&[aria-selected="true"]': {
-          backgroundColor: adminStyle ? 'action.selected' : 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: adminStyle ? 'action.selected' : 'rgba(201, 169, 110, 0.14)',
         },
       },
     }
@@ -127,14 +128,14 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
       renderInput={(params) => (
         <TextField
           {...params}
-          placeholder="Search products..."
+          placeholder="Search jewelry"
           size="small"
           InputProps={{
             ...params.InputProps,
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon sx={{ 
-                  color: adminStyle ? 'action.active' : 'rgba(255, 255, 255, 0.7)' 
+                  color: adminStyle ? 'action.active' : brand.muted 
                 }} />
               </InputAdornment>
             )
@@ -164,13 +165,13 @@ function ProductSearch({ onProductSelect, adminStyle = false }) {
               />
             )}
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
                 {option.title}
               </Typography>
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  color: adminStyle ? 'text.secondary' : 'rgba(255, 255, 255, 0.7)' 
+                  color: adminStyle ? 'text.secondary' : brand.muted 
                 }}
               >
                 ${option.price}

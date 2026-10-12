@@ -1,29 +1,51 @@
 import React, { useState } from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  IconButton, 
-  Box, 
-  Button, 
-  Menu, 
-  MenuItem, 
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Box,
+  Button,
+  Menu,
+  MenuItem,
   Badge,
   Drawer,
   List,
-  ListItem,
+  ListItemButton,
   ListItemText,
+  Collapse,
   useMediaQuery
 } from '@mui/material';
-import logo from '../logo.png';
 import MenuIcon from '@mui/icons-material/Menu';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useCart } from '../contexts/CartContext';
 import ProductSearch from './ProductSearch';
 import { useAuth } from '../contexts/AuthContext';
+import { brand, labelStyle } from '../theme';
+
+// Category mapping to ensure consistency between display names and URL parameters
+export const categories = [
+  { display: 'Shop All', param: '' },
+  { display: 'Rings', param: 'rings' },
+  { display: 'Necklaces', param: 'necklaces' },
+  { display: 'Earrings', param: 'earrings' },
+  { display: 'Bracelets', param: 'bracelets' },
+  { display: 'Wedding & Engagement', param: 'wedding_engagement' }
+];
+
+const linkSx = {
+  ...labelStyle,
+  color: brand.muted,
+  padding: '6px 0',
+  minWidth: 0,
+  '&:hover': { color: brand.goldSoft, backgroundColor: 'transparent' },
+};
+
+const iconSx = { color: brand.goldSoft, '&:hover': { color: brand.gold } };
 
 const NavBar = () => {
   const theme = useTheme();
@@ -34,43 +56,12 @@ const NavBar = () => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Category mapping to ensure consistency between display names and URL parameters
-  const categories = [
-    { display: 'Shop All', param: '' },
-    { display: 'Rings', param: 'rings' },
-    { display: 'Necklaces', param: 'necklaces' },
-    { display: 'Earrings', param: 'earrings' },
-    { display: 'Bracelets', param: 'bracelets' },
-    { display: 'Wedding & Engagement', param: 'wedding_engagement' }
-  ];
-
-  const handleMenuOpen = (event) => {
-    if (!isMobile) {
-      setAnchorEl(event.currentTarget);
-    }
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleMobileMenuToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleMenuItemClick = (categoryParam) => {
     navigate(`/shop/${categoryParam}`);
-    handleMenuClose();
+    setAnchorEl(null);
     setMobileMenuOpen(false);
-  };
-
-  const handleShopClick = () => {
-    if (isMobile) {
-      setMobileMenuOpen(true);
-    } else {
-      navigate('/shop');
-    }
   };
 
   const handleAccountClick = () => {
@@ -86,257 +77,147 @@ const NavBar = () => {
     setMobileMenuOpen(false);
   };
 
+  const cartIcon = (
+    <IconButton component={Link} to="/cart" aria-label="Cart" sx={iconSx}>
+      <Badge
+        badgeContent={getTotalItems()}
+        sx={{ '& .MuiBadge-badge': { backgroundColor: brand.gold, color: '#14110c', fontSize: '0.65rem' } }}
+      >
+        <ShoppingBagOutlinedIcon fontSize="small" />
+      </Badge>
+    </IconButton>
+  );
+
+  const drawerItem = { '& .MuiListItemText-primary': { ...labelStyle, fontSize: '0.8rem', color: brand.text } };
+
   const mobileMenu = (
-    <Drawer
-      anchor="right"
-      open={mobileMenuOpen}
-      onClose={handleMobileMenuToggle}
-      sx={{
-        '& .MuiDrawer-paper': {
-          backgroundColor: theme.palette.background.default,
-          width: '250px',
-        },
-      }}
-    >
-      <List>
-        <ListItem button component={Link} to="/" onClick={() => setMobileMenuOpen(false)}>
-          <ListItemText primary="Home" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-
-        <ListItem button component={Link} to="/about" onClick={() => setMobileMenuOpen(false)}>
-          <ListItemText primary="About" sx={{ color: theme.palette.text.primary }} />
-        </ListItem>
-
-        {categories.map((category) => (
-          <ListItem
-            button
-            key={category.param || 'all'}
-            onClick={() => handleMenuItemClick(category.param)}
-          >
-            <ListItemText
-              primary={category.display}
-              sx={{ color: theme.palette.text.primary }}
-            />
-          </ListItem>
-        ))}
-      </List>
+    <Drawer anchor="right" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
+      <Box sx={{ width: 280, pt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1 }}>
+          <IconButton aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} sx={iconSx}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <List>
+          <ListItemButton component={Link} to="/" onClick={() => setMobileMenuOpen(false)} sx={drawerItem}>
+            <ListItemText primary="Home" />
+          </ListItemButton>
+          {categories.map((category) => (
+            <ListItemButton
+              key={category.param || 'all'}
+              onClick={() => handleMenuItemClick(category.param)}
+              sx={drawerItem}
+            >
+              <ListItemText primary={category.display} />
+            </ListItemButton>
+          ))}
+          <ListItemButton component={Link} to="/about" onClick={() => setMobileMenuOpen(false)} sx={drawerItem}>
+            <ListItemText primary="About" />
+          </ListItemButton>
+          <ListItemButton component="a" href="/paintings" sx={drawerItem}>
+            <ListItemText primary="Paintings" />
+          </ListItemButton>
+          <ListItemButton onClick={handleAccountClick} sx={drawerItem}>
+            <ListItemText primary={isAuthenticated ? 'My Account' : 'Sign In'} />
+          </ListItemButton>
+        </List>
+      </Box>
     </Drawer>
   );
 
   return (
-    <AppBar 
-      position="static" 
-      sx={{ 
-        backgroundColor: theme.palette.background.default,
-        width: '100%',
-        maxWidth: '100%',
-      }}
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{ backgroundColor: brand.black, borderBottom: `1px solid ${brand.line}` }}
     >
-      <Toolbar 
-        sx={{ 
-          display: 'flex', 
+      <Toolbar
+        sx={{
           justifyContent: 'space-between',
-          p: { xs: 1, sm: 2 },
-          minHeight: { xs: '56px' },
-          width: '100%',
-          gap: 1,
-          '& > *': {
-            flexShrink: 0
-          }
+          px: { xs: 2, md: 5 },
+          minHeight: { xs: 64, md: 76 },
         }}
       >
-        {/* Logo/Brand */}
-        <Box
-          sx={{ 
-            marginRight: { xs: 1, sm: 2 }
-          }}
-        >
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <img 
-              src={logo} 
-              alt="CU Logo" 
-              style={{ 
-                height: '60px',
-                width: 'auto'
-              }} 
-            />
-          </Link>
-        </Box>
-
-        {/* Desktop Search Bar */}
-        {!isMobile && (
-          <Box sx={{ 
-            width: '300px',
-            mx: 2,
-            flexGrow: 1,
-            display: 'flex',
-            justifyContent: 'center'
-          }}>
-            <ProductSearch />
+        <Link to="/" aria-label="Home" style={{ textDecoration: 'none' }}>
+          <Box
+            component="span"
+            sx={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              color: brand.gold,
+              fontSize: { xs: '1.5rem', md: '1.75rem' },
+              letterSpacing: '0.3em',
+            }}
+          >
+            CU
           </Box>
-        )}
+        </Link>
 
-        {/* Navigation Links and Icons */}
         {isMobile ? (
-          <Box sx={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            ml: 'auto'
-          }}>
-            {/* Search Container */}
-            <Box sx={{ 
-              width: '180px',
-              position: 'relative',
-              zIndex: 2,
-              mr: 1
-            }}>
-              <ProductSearch />
-            </Box>
-
-            {/* Icons Container */}
-            <Box sx={{
-              display: 'flex',
-              gap: 0.5,
-              alignItems: 'center',
-              zIndex: 1
-            }}>
-              <IconButton 
-                component={Link} 
-                to="/cart" 
-                sx={{ 
-                  color: theme.palette.text.primary,
-                  padding: '6px'
-                }}
-              >
-                <Badge 
-                  badgeContent={getTotalItems()} 
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      backgroundColor: theme.palette.text.primary,
-                      color: 'black',
-                      fontSize: '0.7rem'
-                    }
-                  }}
-                >
-                  <ShoppingCartIcon sx={{ fontSize: '1.2rem' }} />
-                </Badge>
-              </IconButton>
-              
-              <IconButton 
-                onClick={handleAccountClick}
-                sx={{ 
-                  color: theme.palette.text.primary,
-                  padding: '6px'
-                }}
-              >
-                <AccountCircleIcon sx={{ fontSize: '1.2rem' }} />
-              </IconButton>
-
-              <IconButton
-                edge="end"
-                color="inherit"
-                aria-label="menu"
-                onClick={handleMobileMenuToggle}
-                sx={{ 
-                  color: theme.palette.text.primary,
-                  padding: '6px'
-                }}
-              >
-                <MenuIcon sx={{ fontSize: '1.2rem' }} />
-              </IconButton>
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton aria-label="Search" onClick={() => setSearchOpen(!searchOpen)} sx={iconSx}>
+              <SearchIcon fontSize="small" />
+            </IconButton>
+            {cartIcon}
+            <IconButton aria-label="Menu" onClick={() => setMobileMenuOpen(true)} sx={iconSx}>
+              <MenuIcon />
+            </IconButton>
           </Box>
         ) : (
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            gap: 2
-          }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Button
-              color="inherit"
-              sx={{ color: theme.palette.text.primary }}
-              component={Link}
-              to="/"
-            >
-              Home
-            </Button>
-
-            <Button
-              color="inherit"
-              sx={{ color: theme.palette.text.primary }}
-              component={Link}
-              to="/about"
-            >
-              About
-            </Button>
-
-            <Button
-              color="inherit"
-              sx={{ color: theme.palette.text.primary }}
-              onClick={handleShopClick}
-              onMouseEnter={handleMenuOpen}
+              sx={linkSx}
+              onClick={() => navigate('/shop')}
+              onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
               aria-controls={anchorEl ? 'shop-menu' : undefined}
               aria-haspopup="true"
             >
               Shop
             </Button>
-
-            <IconButton 
-              component={Link} 
-              to="/cart" 
-              sx={{ color: theme.palette.text.primary }}
-            >
-              <Badge 
-                badgeContent={getTotalItems()} 
-                sx={{
-                  '& .MuiBadge-badge': {
-                    backgroundColor: theme.palette.text.primary,
-                    color: 'black'
-                  }
-                }}
-              >
-                <ShoppingCartIcon />
-              </Badge>
-            </IconButton>
-
-            <IconButton 
-              onClick={handleAccountClick}
-              sx={{ color: theme.palette.text.primary }}
-            >
-              <AccountCircleIcon />
-            </IconButton>
+            <Button sx={linkSx} component={Link} to="/about">
+              About
+            </Button>
+            <Button sx={linkSx} component="a" href="/paintings">
+              Paintings
+            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
+              <IconButton aria-label="Search" onClick={() => setSearchOpen(!searchOpen)} sx={iconSx}>
+                <SearchIcon fontSize="small" />
+              </IconButton>
+              {cartIcon}
+              <IconButton aria-label="Account" onClick={handleAccountClick} sx={iconSx}>
+                <PersonOutlineIcon fontSize="small" />
+              </IconButton>
+            </Box>
           </Box>
         )}
 
-        {/* Desktop Shop Menu */}
         <Menu
-          sx={{
-            '& .MuiPaper-root': {
-              backgroundColor: theme.palette.background.default,
-            },
-          }}
           id="shop-menu"
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          MenuListProps={{
-            onMouseLeave: handleMenuClose,
-          }}
+          onClose={() => setAnchorEl(null)}
+          MenuListProps={{ onMouseLeave: () => setAnchorEl(null) }}
+          PaperProps={{ sx: { backgroundColor: brand.black, border: `1px solid ${brand.line}`, mt: 1 } }}
         >
           {categories.map((category) => (
-            <MenuItem 
-              key={category.param || 'all'} 
+            <MenuItem
+              key={category.param || 'all'}
               onClick={() => handleMenuItemClick(category.param)}
+              sx={{ ...labelStyle, color: brand.text, py: 1.25, '&:hover': { color: brand.gold } }}
             >
               {category.display}
             </MenuItem>
           ))}
         </Menu>
 
-        {/* Mobile Menu Drawer */}
         {mobileMenu}
       </Toolbar>
+
+      <Collapse in={searchOpen} unmountOnExit>
+        <Box sx={{ px: { xs: 2, md: 5 }, pb: 2, maxWidth: 640, mx: 'auto', width: '100%' }}>
+          <ProductSearch />
+        </Box>
+      </Collapse>
     </AppBar>
   );
 };

@@ -1,237 +1,225 @@
 import React, { useEffect, useState } from "react";
-import ImageCarousel from "../components/imageSlider";
-import { Box, Button, Typography, Divider, useMediaQuery } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 import NavBar from "../components/navbar";
-import { useTheme } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
+import ProductCard from "../components/ProductCard";
+import { useProducts } from "../contexts/ProductContext";
+import { brand, labelStyle } from "../theme";
 
-const GOLD = "#e3d9b1";
+const heroImages = ["gold_bracelt.jpg", "necklace.jpg", "ring.jpg"].map(
+  (name) => `${process.env.PUBLIC_URL}/carousel_images/${name}`
+);
 
-const carouselItems = [
-  { image: `${process.env.PUBLIC_URL}/carousel_images/gold_bracelt.jpg`, title: "Elegant Bracelet" },
-  { image: `${process.env.PUBLIC_URL}/carousel_images/necklace.jpg`,     title: "Golden Necklace"  },
-  { image: `${process.env.PUBLIC_URL}/carousel_images/ring.jpg`,          title: "Diamond Ring"     },
+// Product.type values, as used by the shop filter.
+const homeCategories = [
+  { label: "Rings", param: "rings", type: 0 },
+  { label: "Necklaces", param: "necklaces", type: 1 },
+  { label: "Earrings", param: "earrings", type: 2 },
+  { label: "Bracelets", param: "bracelets", type: 3 },
 ];
 
-/* ─── tiny keyframe injected once ─── */
-const FADE_STYLE = `
-  @keyframes cj-fade-up {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0);     }
-  }
-  .cj-panel-1 { animation: cj-fade-up 0.9s ease both; animation-delay: 0.15s; }
-  .cj-panel-2 { animation: cj-fade-up 0.9s ease both; animation-delay: 0.40s; }
-  .cj-panel-3 { animation: cj-fade-up 0.9s ease both; animation-delay: 0.65s; }
-  .cj-panel-4 { animation: cj-fade-up 0.9s ease both; animation-delay: 0.85s; }
-`;
+const sectionSx = { maxWidth: 1200, mx: "auto", px: { xs: 2.5, md: 6 } };
 
-function Home() {
-  const theme    = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const navigate = useNavigate();
+function SectionHeader({ title, linkTo, linkLabel }) {
+  return (
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", mb: { xs: 3, md: 4 } }}>
+      <Typography variant="h3" sx={{ fontSize: { xs: "1.9rem", md: "2.4rem" } }}>
+        {title}
+      </Typography>
+      {linkTo && (
+        <Box component={Link} to={linkTo} sx={{ ...labelStyle, color: brand.gold, textDecoration: "none" }}>
+          {linkLabel}
+        </Box>
+      )}
+    </Box>
+  );
+}
 
-  /* inject keyframes once */
-  const [stylesReady, setStylesReady] = useState(false);
+function Hero() {
+  const [current, setCurrent] = useState(0);
+
   useEffect(() => {
-    if (!document.getElementById("cj-home-styles")) {
-      const tag = document.createElement("style");
-      tag.id        = "cj-home-styles";
-      tag.innerHTML = FADE_STYLE;
-      document.head.appendChild(tag);
-    }
-    setStylesReady(true);
+    const timer = setInterval(() => setCurrent((i) => (i + 1) % heroImages.length), 6000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <Box sx={{ bgcolor: "#000", minHeight: "100vh", color: GOLD }}>
-      <NavBar />
-
-      {/* ── 1. Announcement bar ─────────────────────────────────── */}
+    <Box sx={{ position: "relative", height: { xs: "78vh", md: "82vh" }, minHeight: 480, overflow: "hidden" }}>
+      {heroImages.map((src, i) => (
+        <Box
+          key={src}
+          component="img"
+          src={src}
+          alt=""
+          loading={i === 0 ? "eager" : "lazy"}
+          sx={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: i === current ? 1 : 0,
+            transition: "opacity 1.6s ease",
+          }}
+        />
+      ))}
       <Box
         sx={{
-          width: "100%",
-          bgcolor: `rgba(227,217,177,0.06)`,
-          borderBottom: `1px solid rgba(227,217,177,0.10)`,
-          py: "10px",
-          textAlign: "center",
+          position: "absolute",
+          inset: 0,
+          background: {
+            xs: "linear-gradient(0deg, rgba(11,10,9,0.92) 0%, rgba(11,10,9,0.35) 55%, rgba(11,10,9,0.1) 100%)",
+            md: "linear-gradient(90deg, rgba(11,10,9,0.9) 0%, rgba(11,10,9,0.4) 50%, rgba(11,10,9,0) 100%)",
+          },
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          left: { xs: 24, md: 80 },
+          right: { xs: 24, md: "auto" },
+          bottom: { xs: 48, md: 96 },
+          maxWidth: 480,
         }}
       >
+        <Typography variant="overline" component="p">
+          Handmade in Kadima, Israel
+        </Typography>
+        <Typography
+          component="h1"
+          variant="h1"
+          sx={{ fontSize: { xs: "2.6rem", md: "3.8rem" }, lineHeight: 1.05, color: brand.text, my: 2 }}
+        >
+          Jewelry that carries a story
+        </Typography>
+        <Typography sx={{ color: brand.goldSoft, lineHeight: 1.7, mb: 4, maxWidth: 400 }}>
+          14k and 18k gold with hand-set stones. Every piece is made by hand, from the first sketch to the final polish.
+        </Typography>
+        <Button variant="contained" component={Link} to="/shop">
+          Shop the collection
+        </Button>
+      </Box>
+    </Box>
+  );
+}
+
+function Home() {
+  const { products } = useProducts();
+  const newest = [...products].sort((a, b) => b.id - a.id).slice(0, 4);
+  const coverFor = (type) => products.find((p) => p.type === type)?.image1;
+
+  return (
+    <Box>
+      <NavBar />
+      <Hero />
+
+      {newest.length > 0 && (
+        <Box sx={{ ...sectionSx, pt: { xs: 8, md: 12 } }}>
+          <SectionHeader title="New pieces" linkTo="/shop" linkLabel="View all" />
+          <Grid container spacing={{ xs: 2, md: 3 }}>
+            {newest.map((product) => (
+              <Grid item xs={6} md={3} key={product.id}>
+                <ProductCard product={product} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      <Box sx={{ ...sectionSx, py: { xs: 10, md: 14 }, textAlign: "center" }}>
+        <Typography variant="overline" component="p">
+          The maker
+        </Typography>
         <Typography
           sx={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "0.65rem",
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: `rgba(227,217,177,0.70)`,
-            userSelect: "none",
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: { xs: "1.6rem", md: "2.2rem" },
+            lineHeight: 1.4,
+            color: brand.text,
+            maxWidth: 760,
+            mx: "auto",
+            my: 3,
           }}
         >
-          Handcrafted&nbsp;&nbsp;·&nbsp;&nbsp;Made to Order&nbsp;&nbsp;·&nbsp;&nbsp;Each Piece Unique
+          Catherine draws, shapes, sets and polishes every piece herself. No factory, no casting house, just one pair of hands.
         </Typography>
+        <Button variant="outlined" component={Link} to="/about">
+          Meet Catherine
+        </Button>
       </Box>
 
-      {/* ── 2. Hero ─────────────────────────────────────────────── */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: "stretch",
-          width: "100%",
-          maxWidth: 1280,
-          mx: "auto",
-          px: { xs: 2, md: 6 },
-          pt: { xs: 4, md: 7 },
-          pb: { xs: 5, md: 8 },
-          gap: { xs: 5, md: 0 },
-        }}
-      >
-        {/* ── Carousel (left) ── */}
-        <Box
-          sx={{
-            flex: isMobile ? "none" : "0 0 58%",
-            width: isMobile ? "100%" : "58%",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <ImageCarousel
-            items={carouselItems}
-            width="100%"
-          />
-        </Box>
-
-        {/* ── Brand text panel (right) ── */}
-        <Box
-          sx={{
-            flex: isMobile ? "none" : "1 1 42%",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            pl: isMobile ? 0 : 7,
-            pr: isMobile ? 0 : 1,
-            pt: isMobile ? 0 : 2,
-          }}
-        >
-          {/* label */}
-          {/* headline */}
-          <Typography
-            className={stylesReady ? "cj-panel-2" : ""}
-            component="h1"
-            sx={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: { xs: "2rem", md: "3rem" },
-              fontWeight: 300,
-              lineHeight: 1.15,
-              color: GOLD,
-              mb: 3,
-              letterSpacing: "0.01em",
-            }}
-          >
-            Jewelry that carries<br />a story
-          </Typography>
-
-          {/* sub-text */}
-          <Typography
-            className={stylesReady ? "cj-panel-3" : ""}
-            sx={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "0.875rem",
-              lineHeight: 1.75,
-              color: `rgba(227,217,177,0.70)`,
-              mb: 3.5,
-              maxWidth: 340,
-            }}
-          >
-            14k &amp; 18k gold, handset gemstones.
-            <br />
-            Every piece built by hand — from drawing to final polish.
-          </Typography>
-
-          {/* rule */}
-          <Divider
-            className={stylesReady ? "cj-panel-3" : ""}
-            sx={{
-              borderColor: `rgba(227,217,177,0.20)`,
-              mb: 3.5,
-              maxWidth: 280,
-            }}
-          />
-
-          {/* CTA button */}
-          <Box className={stylesReady ? "cj-panel-4" : ""}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate("/shop")}
-              sx={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.72rem",
-                letterSpacing: "0.20em",
-                textTransform: "uppercase",
-                color: GOLD,
-                borderColor: `rgba(227,217,177,0.55)`,
-                borderRadius: 0,
-                px: 4,
-                py: 1.4,
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  borderColor: GOLD,
-                  bgcolor: `rgba(227,217,177,0.07)`,
-                  boxShadow: `0 0 18px rgba(227,217,177,0.08)`,
-                },
-              }}
-            >
-              Shop the Collection
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* ── 3. Feature pills ────────────────────────────────────── */}
-      <Box
-        sx={{
-          width: "100%",
-          borderTop:    `1px solid rgba(227,217,177,0.09)`,
-          borderBottom: `1px solid rgba(227,217,177,0.09)`,
-          py: "14px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: { xs: 2, sm: 0 },
-          flexWrap: "wrap",
-        }}
-      >
-        {["14k & 18k Solid Gold", "Natural Gemstones", "Made to Order"].map(
-          (label, i, arr) => (
-            <React.Fragment key={label}>
-              <Typography
+      <Box sx={sectionSx}>
+        <SectionHeader title="Shop by category" />
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {homeCategories.map((cat) => (
+            <Grid item xs={6} md={3} key={cat.param}>
+              <Box
+                component={Link}
+                to={`/shop/${cat.param}`}
                 sx={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: "0.62rem",
-                  letterSpacing: "0.20em",
-                  textTransform: "uppercase",
-                  color: `rgba(227,217,177,0.58)`,
-                  userSelect: "none",
-                  px: { xs: 0, sm: 3 },
+                  display: "block",
+                  position: "relative",
+                  aspectRatio: "3 / 4",
+                  overflow: "hidden",
+                  backgroundColor: brand.panel,
+                  "&:hover img": { transform: "scale(1.04)" },
                 }}
               >
-                {label}
-              </Typography>
-              {i < arr.length - 1 && (
-                <Typography
-                  aria-hidden
+                {coverFor(cat.type) && (
+                  <Box
+                    component="img"
+                    src={coverFor(cat.type)}
+                    alt=""
+                    loading="lazy"
+                    sx={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.8s ease" }}
+                  />
+                )}
+                <Box
                   sx={{
-                    color: `rgba(227,217,177,0.22)`,
-                    fontSize: "0.65rem",
-                    display: { xs: "none", sm: "block" },
-                    userSelect: "none",
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(0deg, rgba(11,10,9,0.8) 0%, rgba(11,10,9,0) 55%)",
+                    display: "flex",
+                    alignItems: "flex-end",
+                    p: { xs: 2, md: 3 },
                   }}
                 >
-                  ·
-                </Typography>
-              )}
-            </React.Fragment>
-          )
-        )}
+                  <Typography sx={{ ...labelStyle, color: brand.text, fontSize: "0.8rem" }}>{cat.label}</Typography>
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ ...sectionSx, pt: { xs: 10, md: 14 } }}>
+        <Box
+          sx={{
+            border: `1px solid ${brand.line}`,
+            px: { xs: 3, md: 8 },
+            py: { xs: 6, md: 8 },
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "flex-start", md: "center" },
+            justifyContent: "space-between",
+            gap: 3,
+          }}
+        >
+          <Box>
+            <Typography variant="overline" component="p">
+              Also by Catherine
+            </Typography>
+            <Typography variant="h3" sx={{ fontSize: { xs: "1.9rem", md: "2.4rem" }, mt: 1 }}>
+              Original paintings
+            </Typography>
+            <Typography sx={{ color: brand.muted, mt: 1, maxWidth: 520 }}>
+              Acrylic on canvas, built up in layers with a palette knife. Each one is the only one.
+            </Typography>
+          </Box>
+          <Button variant="outlined" component="a" href="/paintings">
+            See the paintings
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

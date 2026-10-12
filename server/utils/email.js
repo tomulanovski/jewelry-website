@@ -90,7 +90,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
         <tr>
           <td style="padding:36px 40px;">
             <h2 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#3a2e28;">Your order is confirmed!</h2>
-            <p style="margin:0 0 24px;color:#7a6558;font-size:15px;">Thank you for your purchase. We're delighted to be crafting something special for you.</p>
+            <p style="margin:0 0 24px;color:#7a6558;font-size:15px;">Thank you for your purchase. Catherine is happy to be making something special for you.</p>
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
               <tr>
@@ -117,7 +117,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
             <p style="margin:0 0 24px;font-size:15px;color:#3a2e28;">${address}</p>
 
             <p style="margin:0 0 8px;font-size:15px;color:#3a2e28;line-height:1.7;">
-              Your order will be carefully prepared and dispatched within <strong>1 week</strong>. Each piece is handmade with love and attention to detail, so we appreciate your patience while we create your jewellery.
+              Catherine will prepare your order by hand and ship it within <strong>1 week</strong>. Thank you for your patience while your jewelry is made.
             </p>
             <p style="margin:0;font-size:15px;color:#3a2e28;line-height:1.7;">
               If you have any questions, simply reply to this email and we'll be happy to help.

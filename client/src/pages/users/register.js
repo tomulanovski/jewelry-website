@@ -11,6 +11,7 @@ import {
   Paper,
   CircularProgress
 } from '@mui/material';
+import NavBar from '../../components/navbar';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -51,10 +52,12 @@ export const Register = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <>
+    <NavBar />
+    <Container component="main" maxWidth="xs" sx={{ pb: 4 }}>
       <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
+        <Paper sx={{ p: { xs: 3, sm: 5 } }}>
+          <Typography component="h1" variant="h3" align="center" gutterBottom>
             Create Account
           </Typography>
 
@@ -123,5 +126,6 @@ export const Register = () => {
         </Paper>
       </Box>
     </Container>
+    </>
   );
 };

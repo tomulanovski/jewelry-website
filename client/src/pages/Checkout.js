@@ -100,8 +100,8 @@ const totalWithShipping = getTotalPrice() + (shippingMethod === 'express' ? 40 :
   return (
     <Box>
       <NavBar />
-      <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: { xs: 2, md: 4 } }}>
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+      <Box sx={{ maxWidth: '1200px', margin: '0 auto', px: { xs: 2, md: 6 }, pt: { xs: 4, md: 8 } }}>
+        <Typography variant="h2" component="h1" sx={{ mb: { xs: 4, md: 5 }, fontSize: { xs: '2.4rem', md: '3.2rem' } }}>
           Checkout
         </Typography>
 
@@ -187,6 +187,7 @@ const totalWithShipping = getTotalPrice() + (shippingMethod === 'express' ? 40 :
             <Alert
               onClose={() => setNotification(null)}
               severity={notification.type}
+              variant="filled"
               sx={{ width: '100%' }}
             >
               {notification.message}
