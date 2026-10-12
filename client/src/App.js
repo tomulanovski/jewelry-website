@@ -39,7 +39,7 @@ function App() {
 
   return (
     <PayPalScriptProvider options={paypalOptions}>
-      <BrowserRouter>
+      <BrowserRouter basename="/jewelry">
       <AuthProvider>
       <ProductProvider>
         <CartProvider>

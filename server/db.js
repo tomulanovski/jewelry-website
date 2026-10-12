@@ -9,9 +9,7 @@ const db = new pg.Pool(
     isProduction
     ? {
         connectionString: process.env.DB_URL,
-        ssl: {
-            rejectUnauthorized: false
-        }
+        ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false } // DB_SSL=false for a local DB without SSL
     }
     : {
         user: process.env.DB_USER,

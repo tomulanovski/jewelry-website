@@ -8,9 +8,9 @@ import { useNavigate } from "react-router-dom";
 const GOLD = "#e3d9b1";
 
 const carouselItems = [
-  { image: "carousel_images/gold_bracelt.jpg", title: "Elegant Bracelet" },
-  { image: "carousel_images/necklace.jpg",     title: "Golden Necklace"  },
-  { image: "carousel_images/ring.jpg",          title: "Diamond Ring"     },
+  { image: `${process.env.PUBLIC_URL}/carousel_images/gold_bracelt.jpg`, title: "Elegant Bracelet" },
+  { image: `${process.env.PUBLIC_URL}/carousel_images/necklace.jpg`,     title: "Golden Necklace"  },
+  { image: `${process.env.PUBLIC_URL}/carousel_images/ring.jpg`,          title: "Diamond Ring"     },
 ];
 
 /* ─── tiny keyframe injected once ─── */

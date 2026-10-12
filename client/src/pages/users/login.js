@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth} from '../../contexts/AuthContext'
 import {
   Container,
@@ -92,7 +92,7 @@ export const Login = () => {
               Sign In
             </Button>
             <Box sx={{ textAlign: 'center' }}>
-              <Link href="/register" variant="body2">
+              <Link component={RouterLink} to="/register" variant="body2">
                 {"Don't have an account? Sign Up"}
               </Link>
             </Box>
