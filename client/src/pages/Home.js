@@ -83,7 +83,7 @@ function Hero() {
         }}
       >
         <Typography variant="overline" component="p">
-          Handmade in Kadima, Israel
+          Made by hand, one piece at a time
         </Typography>
         <Typography
           component="h1"
