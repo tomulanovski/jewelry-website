@@ -1,21 +1,16 @@
-import nodemailer from 'nodemailer';
-
-function createTransporter() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_APP_PASSWORD;
-
-  if (!user || !pass) {
-    return null;
-  }
-
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user, pass }
+// Emails go through Resend's HTTPS API (DigitalOcean blocks outgoing SMTP).
+// Replies go to the owner's inbox.
+async function sendEmail(mail) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, reply_to: process.env.OWNER_EMAIL, ...mail })
   });
+  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 }
-
-// Fix #2: module-level singleton — created once, reused on every send
-const transporter = createTransporter();
 
 function formatAddress(shippingAddress) {
   if (!shippingAddress) return 'N/A';
@@ -66,9 +61,8 @@ function formatItemsHtml(items) {
 }
 
 export async function sendOrderConfirmation(order, items, customerEmail) {
-  // Fix #2: use module-level singleton
-  if (!transporter) {
-    console.log('[email] EMAIL_USER or EMAIL_APP_PASSWORD not set — skipping customer confirmation email.');
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY not set, skipping customer confirmation email.');
     return;
   }
 
@@ -147,8 +141,7 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
   const text = `Thank you for your order!\n\nOrder #${orderNumber}\n\n${itemLines}\n\nTotal: $${total}\nShip to: ${address}\n\nYour order will be dispatched within 1 week.\n\nWith warmth, Catherine`;
 
   try {
-    await transporter.sendMail({
-      from: `"Catherine Ulanovski" <${process.env.EMAIL_USER}>`,
+    await sendEmail({
       to: customerEmail,
       subject: `Order Confirmed #${orderNumber}`,
       text,
@@ -161,9 +154,8 @@ export async function sendOrderConfirmation(order, items, customerEmail) {
 }
 
 export async function sendOwnerNotification(order, items) {
-  // Fix #2: use module-level singleton
-  if (!transporter) {
-    console.log('[email] EMAIL_USER or EMAIL_APP_PASSWORD not set — skipping owner notification email.');
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY not set, skipping owner notification email.');
     return;
   }
 
@@ -242,8 +234,7 @@ export async function sendOwnerNotification(order, items) {
   const ownerText = `New order received!\n\nOrder #${orderNumber}\nCustomer: ${customerName} <${customerEmail}>\n\n${ownerItemLines}\n\nTotal: $${total}\nShip to: ${address}`;
 
   try {
-    await transporter.sendMail({
-      from: `"Catherine Ulanovski" <${process.env.EMAIL_USER}>`,
+    await sendEmail({
       to: ownerEmail,
       subject: `New Order #${orderNumber}`,
       text: ownerText,
