@@ -82,7 +82,7 @@ function Footer() {
           <Grid item xs={6} md={3}>
             <ColumnTitle>Catherine</ColumnTitle>
             <FooterLink to="/about">About</FooterLink>
-            <FooterLink href="https://www.etsy.com/il-en/shop/CJbijoux" external>Etsy Shop</FooterLink>
+            <FooterLink href="mailto:c.ulanovski@gmail.com?subject=Custom%20order">Custom orders</FooterLink>
           </Grid>
 
           <Grid item xs={12} md={3}>
@@ -90,7 +90,7 @@ function Footer() {
             <Typography sx={{ color: brand.muted, fontSize: "0.9rem", lineHeight: 1.8, mb: 1 }}>
               Questions or a custom piece in mind? Write to Catherine.
             </Typography>
-            <FooterLink href="mailto:info@cjbijoux.com">info@cjbijoux.com</FooterLink>
+            <FooterLink href="mailto:c.ulanovski@gmail.com">c.ulanovski@gmail.com</FooterLink>
           </Grid>
         </Grid>
 

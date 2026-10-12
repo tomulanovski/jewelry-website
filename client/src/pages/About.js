@@ -88,7 +88,7 @@ export default function About() {
             <Typography sx={{ ...bodySx, maxWidth: 540, mx: 'auto', mb: 4 }}>
               Have a stone you love, or a piece you've imagined but never found? Catherine welcomes custom commissions. Tell her your idea and she'll make it, one of a kind and just for you.
             </Typography>
-            <Button variant="outlined" href="mailto:info@cjbijoux.com">
+            <Button variant="outlined" href="mailto:c.ulanovski@gmail.com">
               Get in touch
             </Button>
           </Box>
