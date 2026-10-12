@@ -114,9 +114,6 @@ const NavBar = () => {
           <ListItemButton component={Link} to="/about" onClick={() => setMobileMenuOpen(false)} sx={drawerItem}>
             <ListItemText primary="About" />
           </ListItemButton>
-          <ListItemButton component="a" href="/paintings" sx={drawerItem}>
-            <ListItemText primary="Paintings" />
-          </ListItemButton>
           <ListItemButton onClick={handleAccountClick} sx={drawerItem}>
             <ListItemText primary={isAuthenticated ? (user?.isAdmin ? 'Admin' : 'My Cart') : 'Sign In'} />
           </ListItemButton>
@@ -175,9 +172,6 @@ const NavBar = () => {
             </Button>
             <Button sx={linkSx} component={Link} to="/about">
               About
-            </Button>
-            <Button sx={linkSx} component="a" href="/paintings">
-              Paintings
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
               <IconButton aria-label="Search" onClick={() => setSearchOpen(!searchOpen)} sx={iconSx}>

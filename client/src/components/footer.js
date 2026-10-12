@@ -82,7 +82,6 @@ function Footer() {
           <Grid item xs={6} md={3}>
             <ColumnTitle>Catherine</ColumnTitle>
             <FooterLink to="/about">About</FooterLink>
-            <FooterLink href="/paintings">Paintings</FooterLink>
             <FooterLink href="https://www.etsy.com/il-en/shop/CJbijoux" external>Etsy Shop</FooterLink>
           </Grid>
 

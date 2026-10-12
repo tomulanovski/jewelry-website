@@ -192,35 +192,6 @@ function Home() {
         </Grid>
       </Box>
 
-      <Box sx={{ ...sectionSx, pt: { xs: 10, md: 14 } }}>
-        <Box
-          sx={{
-            border: `1px solid ${brand.line}`,
-            px: { xs: 3, md: 8 },
-            py: { xs: 6, md: 8 },
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            alignItems: { xs: "flex-start", md: "center" },
-            justifyContent: "space-between",
-            gap: 3,
-          }}
-        >
-          <Box>
-            <Typography variant="overline" component="p">
-              Also by Catherine
-            </Typography>
-            <Typography variant="h3" sx={{ fontSize: { xs: "1.9rem", md: "2.4rem" }, mt: 1 }}>
-              Original paintings
-            </Typography>
-            <Typography sx={{ color: brand.muted, mt: 1, maxWidth: 520 }}>
-              Acrylic on canvas, built up in layers with a palette knife. Each one is the only one.
-            </Typography>
-          </Box>
-          <Button variant="outlined" component="a" href="/paintings">
-            See the paintings
-          </Button>
-        </Box>
-      </Box>
     </Box>
   );
 }
